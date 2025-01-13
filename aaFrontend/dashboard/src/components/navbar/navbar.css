@@ -1,0 +1,27 @@
+.navbar-body{
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+img{
+    vertical-align: middle;
+}
+
+.admin-box{
+    cursor: pointer;
+}
+
+
+.p-menu-list{
+    margin-bottom: 0px;
+    padding-left: 0px;
+}
+
+.p-menu ul{
+    font-size: 14px;
+}
+
+.p-menu-list a{
+    text-decoration: none;
+}

@@ -1,0 +1,48 @@
+.sidebar-body{
+    background-color: white;
+    min-height: 100vh;
+    height: 100%;
+    padding: 10px;
+}
+
+.menu-sec a{
+    text-decoration: none;
+    font-weight: 400;
+
+}
+
+
+.custom-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    margin-top: 5px;
+}
+
+.menu-item i {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+.menu-item.active {
+    background-color: #7d1329; /* Active background color */
+    border-radius: 3px;
+    color: #fff; /* Active text color */
+    font-weight: bold; /* Optional bold styling */
+}
+
+.menu-item.active i {
+    color: #fff; 
+}

@@ -1,0 +1,45 @@
+.login-body{
+    min-height: 100vh;
+    margin: 0;
+    padding: 0px;
+    overflow-x: hidden;
+}
+
+.login-body .row{
+    min-height: 100vh;
+}
+
+.login-body .card{
+    background-color: white;
+    border-radius: 0px;
+    border: 0px;
+    padding: 24px;
+}
+
+.btn-login{
+    background-color: #7d1329;
+    border-radius: 0px;
+    color: white;
+    border-color: #7d1329;
+    width: 100%;
+}
+
+.btn-login:hover{
+    background-color: darkred;
+    border-radius: 0px;
+    color: white;
+    border-color: darkred;
+    width: 100%;
+}
+
+
+.input-sec{
+    display: flex;
+    flex-direction: column;
+}
+
+.input-sec .form-control{
+    border-radius: 0px;
+    font-size: 14px !important;
+    padding: 5px 12px !important;
+}
