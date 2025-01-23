@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import AddStaff from './addStaff';
+import EditStaff from './editStaff';
 import Swal from 'sweetalert2';
         
 
@@ -16,9 +17,11 @@ export default function Staff() {
   const [staffs,setStaffs]=useState()
   const [staffToDelete,setStaffToDelete]=useState()
   const [addVisible,setAddVisible]=useState(false)
+  const [editVisible,setEditVisible]=useState(false)
   const [selectedStaff, setSelectedStaff] = useState([]);
   const [staffView,setStaffView]=useState(false)
   const [deleteStaffDialog,setDeleteStaffDialog]=useState(false)
+  
 
   const fetchStaffs=async()=>{
     
@@ -57,14 +60,18 @@ export default function Staff() {
         }
   }
 
+  const editStaff=(staff)=>{
+    setSelectedStaff(staff)
+    setEditVisible(true)
+  }
+
   const closeEvent=()=>{
     fetchStaffs()
     setAddVisible(false)
+    setEditVisible(false)
   }
 
-  const tableHeader=(<div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
-    <span className="text-xl text-900 font-bold">Staffs</span> <Button label="Add Staff" icon="pi pi-plus" onClick={() => setAddVisible(true)}/>
-  </div>)
+  
 
 const formatCurrency = (value) => {
   return value.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
@@ -79,12 +86,19 @@ const onRowUnselect = () => {
   setSelectedStaff([])
 };
 
+const closeEdit=()=>{
+  fetchStaffs()
+  setSelectedStaff([])
+  setEditVisible(false)
+  
+}
+
 const actionBodyTemplate = (rowData) => {
   return (
-      <React.Fragment>
-          
+      <div className='d-flex justify-content-around'>
+          <Button icon="pi pi-pencil" rounded outlined severity="info" onClick={()=> editStaff(rowData)} />
           <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteStaff(rowData)} />
-      </React.Fragment>
+      </div>
   );
 };
 
@@ -92,6 +106,15 @@ const confirmDeleteStaff = (staff) => {
   setStaffToDelete(staff);
   setDeleteStaffDialog(true);
 };
+
+const statusBody=(rowData)=>{
+  const statusClass = rowData.status ? 'active' : 'inactive'; 
+  return (
+    <div className={statusClass}>  
+      {rowData.status ? 'Active' : 'Inactive'}
+    </div>
+  );
+}
 
 const deleteStaffDialogFooter = (
   <React.Fragment>
@@ -102,32 +125,45 @@ const deleteStaffDialogFooter = (
 
 
 
-
   return (
     <div className='staff-body'>
       <div className="container pt-3">
-      <div className="card ">
-      <DataTable   value={staffs}  selectionMode={'single'} selection={selectedStaff} onSelectionChange={(e) => {setSelectedStaff(e.value);}} 
-        onRowSelect={onRowSelect} onRowUnselect={onRowUnselect}  tableStyle={{ minWidth: '50rem'}} showGridlines header={tableHeader}  >
-          <Column field="staff_id" header="Staff ID"></Column>
-          <Column field="name" header="Name"></Column>
-          <Column field='designation' header="Designation"></Column>
-          <Column field='phone' header="Phone"></Column>
-          <Column body={actionBodyTemplate}></Column>
-      </DataTable>
+      <div className="d-flex flex-wrap align-items-center justify-content-end mb-3">
+         <Button label="Add Staff" icon="pi pi-plus" onClick={() => setAddVisible(true)}/>
       </div>
+      
+        
+        <DataTable  editMode='row' className='w-100' value={staffs}   selectionMode={'single'} selection={selectedStaff} onSelectionChange={(e) => {setSelectedStaff(e.value);}} 
+        onRowSelect={onRowSelect} onRowUnselect={onRowUnselect}  showGridlines stripedRows>
+            <Column header="Sl No"  body={(rowData, { rowIndex }) => <>{rowIndex + 1}</>}></Column>
+            <Column field="staff_id" header="Staff ID"></Column>
+            <Column header="Status" body={statusBody}/>
+            <Column field="name" header="Name" body={(rowData) => <span className='fw-bold'>{rowData.name}</span>}></Column>
+            <Column field='designation' header="Designation"></Column>
+            <Column field='phone' header="Phone"></Column>
+            <Column header='Action' body={actionBodyTemplate}></Column>
+        </DataTable>
+        
+      
+      
+      
 
       <Dialog header="Add Staff" visible={addVisible} onHide={()=>setAddVisible(false)}>
             <AddStaff onClose={closeEvent}/>
       </Dialog>
 
-      <Dialog header={`Staff #${selectedStaff.staff_id}`} visible={staffView} style={{ width: '50vw' }} onHide={onRowUnselect}>
+      <Dialog header="Edit Staff" visible={editVisible} onHide={closeEdit}>
+            <EditStaff staff={selectedStaff} onClose={closeEdit}/>
+      </Dialog>
+
+      <Dialog  header={`Staff #${selectedStaff.staff_id}`} className='staff-view-box' visible={staffView} style={{ width: '50vw'}} onHide={onRowUnselect} >
+        <section id='staff-view'>
           <div className="container">
             {selectedStaff.name?<>
               <div className="row">
               <div className="col-4">
                 <div className="card p-3">
-                <img src="src/assets/logo.svg" alt="" width={150}/>
+                <img src="src/assets/chottu.jpg" alt="" width={150}/>
                 </div>
               </div>
               <div className="col-8">
@@ -154,6 +190,7 @@ const deleteStaffDialogFooter = (
             </div>
             </>:<></>}
           </div>
+          </section>
       </Dialog>
 
       <Dialog visible={deleteStaffDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} footer={deleteStaffDialogFooter} header="Confirm" modal  onHide={()=>setDeleteStaffDialog(false)}>

@@ -17,3 +17,20 @@ class Staffs(models.Model):
     salary=models.IntegerField()
     joined_date=models.DateField() 
     deleted=models.BooleanField(default=False)
+    status=models.BooleanField(default=True)
+
+class Attendance(models.Model):
+    ATTENDANCE_STATUS = [
+        ('P', 'Present'),
+        ('A', 'Absent'),
+        ('L', 'Leave'),
+    ]
+
+    staff = models.ForeignKey(Staffs, on_delete=models.CASCADE, related_name='attendances')
+    date = models.DateField()
+    status = models.CharField(max_length=1, choices=ATTENDANCE_STATUS, default='A')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('staff', 'date')  
+        ordering = ['-date']    

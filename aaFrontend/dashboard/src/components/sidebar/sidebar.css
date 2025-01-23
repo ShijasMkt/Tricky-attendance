@@ -11,6 +11,11 @@
 
 }
 
+.menu-sec{
+    font-size: 13px  !important;
+    margin-top: 30px;
+}
+
 
 .custom-menu {
     list-style: none;
@@ -21,15 +26,16 @@
 .menu-item {
     display: flex;
     align-items: center;
-    padding: 10px 15px;
+    padding: 10px 20px;
     cursor: pointer;
+    border-radius: 5px;
     transition: background-color 0.3s, color 0.3s;
     margin-top: 5px;
 }
 
 .menu-item i {
     margin-right: 10px;
-    font-size: 1.2em;
+    font-size: 13px;
 }
 
 .menu-item:hover {
@@ -38,11 +44,45 @@
 
 .menu-item.active {
     background-color: #7d1329; /* Active background color */
-    border-radius: 3px;
+    border-radius: 5px;
     color: #fff; /* Active text color */
-    font-weight: bold; /* Optional bold styling */
+    
 }
 
 .menu-item.active i {
     color: #fff; 
+}
+
+.logo{
+    text-align: center;
+    padding-top: 25px;
+}
+
+.submenu {
+    padding-left: 20px;
+    list-style: none;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.submenu .menu-item {
+    padding: 5px 10px;
+    cursor: pointer;
+    color: #6c757d;
+    
+}
+
+.submenu .menu-item.active {
+    color: #7d1329;
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.submenu-icon {
+    float: right;
+    transition: transform 0.3s;
+}
+
+.submenu-icon.expanded {
+    transform: rotate(90deg);
 }

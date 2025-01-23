@@ -21,6 +21,12 @@ export default function Navbar() {
             case '/staff':
                 setPage('Staff Overview')
                 break;
+            case '/attendance/view':
+                setPage('Attendance Overview')
+                break;
+            case '/attendance/mark':
+                setPage('Mark Attendance')
+                break;
             default:
                 break;
         }

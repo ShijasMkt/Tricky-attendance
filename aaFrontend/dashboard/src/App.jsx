@@ -9,6 +9,8 @@ import Overview from './components/home/overview';
 import Staff from './components/staff/staff';
 import { BrowserRouter as Router, Route, Routes, Navigate, Link ,ScrollRestoration} from "react-router-dom";
 import Cookies from "js-cookie";
+import AttendanceView from './components/attendance/attendanceView';
+import AttendanceMark from './components/attendance/attendanceMark';
 
 function App() {
 
@@ -28,6 +30,8 @@ function App() {
             <Route index element={<Overview/>}/>
             <Route path='*' element={<Navigate to="/" />}/>
             <Route path='staff' element={<Staff/>}/>
+            <Route path='attendance/view' element={<AttendanceView />} />
+            <Route path='attendance/mark' element={<AttendanceMark />} />
           </Route>
         </Routes>
       </Router>

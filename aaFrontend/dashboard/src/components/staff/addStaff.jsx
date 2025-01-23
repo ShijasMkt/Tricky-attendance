@@ -49,21 +49,22 @@ export default function AddStaff({onClose}) {
             }
     }
   return (
+    <section id='add-staff'>
     <div className='container'>
       
         <form action="" onSubmit={saveStaff}>
         <div className="row">
         <div className="col-4 form-group">
-            <label htmlFor="staff_id">Staff ID</label>
-            <input value={formData.staff_id} onChange={handleChange} type="text" id='staff_id' placeholder='' className='form-control' required/>
+            <label htmlFor="staff_id" className='form-label mb-0'>Staff ID</label>
+            <input value={formData.staff_id} onChange={handleChange} type="text" id='staff_id' placeholder='Enter Staff ID' className='form-control' required/>
         </div>
         <div className="col-4 form-group">
-            <label htmlFor="name">Full Name</label>
-            <input value={formData.name} onChange={handleChange} type="text" id='name' placeholder='' className='form-control' required/>
+            <label htmlFor="name" className='form-label mb-0'>Full Name</label>
+            <input value={formData.name} onChange={handleChange} type="text" id='name' placeholder='Enter Full Name' className='form-control ' required/>
         </div>
         <div className="col-4 form-group">
-            <label htmlFor="phone">Phone</label>
-            <input value={formData.phone} onChange={handleChange} type="text" maxLength={10} id='phone' placeholder='' className='form-control' required/>
+            <label htmlFor="phone" className='form-label mb-0'>Phone No</label>
+            <input value={formData.phone} onChange={handleChange} type="text" maxLength={10} id='phone' placeholder='Enter Phone Number' className='form-control' required/>
         </div>
       </div>
 
@@ -71,33 +72,33 @@ export default function AddStaff({onClose}) {
       <div className="row pt-3">
         
         <div className="col-4 form-group">
-            <label htmlFor="email">Email</label>
-            <input value={formData.email} onChange={handleChange} type="email" id='email' placeholder='' className='form-control' required/>
+            <label htmlFor="email" className='form-label mb-0'>Email</label>
+            <input value={formData.email} onChange={handleChange} type="email" id='email' placeholder='Enter Email' className='form-control' required/>
         </div>
         <div className="col-4 form-group">
-            <label htmlFor="designation">Designation</label>
-            <input value={formData.designation} onChange={handleChange} type="text" id='designation' placeholder='' className='form-control' required/>
+            <label htmlFor="designation" className='form-label mb-0' >Designation</label>
+            <input value={formData.designation} onChange={handleChange} type="text" id='designation' placeholder='Enter Designation' className='form-control' required/>
         </div>
         <div className="col-4 form-group">
-            <label htmlFor="birthday">Birthday</label>
-            <input value={formData.birthday} onChange={handleChange} type="date" id='birthday' placeholder='' className='form-control' required/>
+            <label htmlFor="birthday" className='form-label mb-0'>Birthday</label>
+            <input value={formData.birthday} onChange={handleChange} type="date" id='birthday'  className='form-control' required/>
         </div>
       </div>
 
       <div className="row pt-3">
         
         <div className="col-6 form-group">
-            <label htmlFor="address">Address</label>
-            <textarea value={formData.address} onChange={handleChange} id='address' rows={5} cols={50} className='form-control' required/>
+            <label htmlFor="address" className='form-label mb-0'>Address</label>
+            <textarea value={formData.address} onChange={handleChange} id='address' placeholder='Enter Address' rows={5} cols={50} className='form-control' required/>
         </div>
         <div className="col-6">
             <div className="row">
             <div className="col-8 form-group">
-            <label htmlFor="salary">Salary</label>
+            <label htmlFor="salary" className='form-label mb-0'>Salary</label>
             <input value={formData.salary} onChange={handleChange} type="number" id='salary' placeholder='' className='form-control' required/>
             </div>
-            <div className="col-8 form-group">
-            <label htmlFor="joined_date">Date Joined</label>
+            <div className="col-8 form-group mt-3">
+            <label htmlFor="joined_date" className='form-label mb-0'>Date Joined </label>
             <input value={formData.joined_date} onChange={handleChange} type="date" id='joined_date' placeholder='' className='form-control' required/>
             </div>
             </div>
@@ -106,9 +107,10 @@ export default function AddStaff({onClose}) {
       </div>
 
       <div className='text-center pt-3'>
-        <button type='submit' className='btn btn-success'>Save</button>
+        <button type='submit' className='btn btn-theme'>Save</button>
       </div>
       </form>
     </div>
+    </section>
   )
 }

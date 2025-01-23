@@ -5,3 +5,63 @@
     padding: 10px;
 }
 
+tbody td{
+    padding: 8px 10px;
+    white-space: nowrap;
+}
+
+thead th{
+    font-weight: bold !important;
+}
+
+.p-datatable-gridlines {
+    border-collapse: separate !important;
+}
+
+.p-datatable td, .p-datatable th {
+    border: 1px solid var(--surface-border) !important;
+}
+
+
+
+td .active {
+    background-color: #d4edda;  
+    color: #155724;  
+    padding: 5px;  
+    border-radius: 5px;  
+    text-align: center;  
+}
+
+td .inactive {
+    background-color: #f8d7da;  
+    color: #721c24;  
+    padding: 5px;  
+    border-radius: 5px;  
+    text-align: center; 
+}
+
+
+#add-staff input{
+    border-radius: 0px;
+}
+
+#add-staff textarea{
+    border-radius: 0px;
+}
+
+#add-staff .form-control {
+    padding: 0.225rem 0.75rem !important;
+    font-size: 15px !important;
+}
+
+#add-staff .form-label {
+    font-size: 13px;
+}
+
+#staff-view .card{
+    border: none;
+}
+
+.p-dialog-content{
+    background-color: #f5f5f5;
+}

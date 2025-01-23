@@ -10,3 +10,8 @@ class StaffDataSerializer(serializers.ModelSerializer):
         model = Staffs
 
         fields = '__all__'
+
+class AttendanceDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Attendance
+        fields='__all__'        

@@ -6,6 +6,8 @@ urlpatterns = [
     path('api/create_staff/',createStaff),
     path('api/fetch_staff/',fetchStaff),
     path('api/delete_staff/',deleteStaff),
+    path('api/edit_staff/',editStaff),
+    path('api/fetch_Attendance/',fetchAttendance),
 
 
     

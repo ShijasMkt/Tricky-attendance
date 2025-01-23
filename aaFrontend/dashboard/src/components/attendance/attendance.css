@@ -1,0 +1,30 @@
+#attendanceView-body{
+    background-color: white;
+    min-height: 80vh;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+#attendanceView-body .card{
+    padding: 5px;
+    text-align: center;
+}
+
+.present-card h4{
+    color: green;
+}
+
+.absent-card h4{
+    color: red;
+}
+
+.leave-card h4{
+    color: chocolate;
+}
+
+#attendanceMark-body{
+    background-color: white;
+    min-height: 80vh;
+    border-radius: 5px;
+    padding: 10px;
+}
