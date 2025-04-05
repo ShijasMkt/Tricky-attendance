@@ -26,7 +26,7 @@ export default function Login() {
         e.preventDefault();
         
             const body = JSON.stringify({ uName, password });
-            const res = await fetch("http://127.0.0.1:8080/api/check_login/", {
+            const res = await fetch("http://127.0.0.1:8000/api/check_login/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

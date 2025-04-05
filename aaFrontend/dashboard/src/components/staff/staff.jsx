@@ -24,8 +24,7 @@ export default function Staff() {
   
 
   const fetchStaffs=async()=>{
-    
-    const res = await fetch("http://127.0.0.1:8080/api/fetch_staff/", {
+    const res = await fetch("http://127.0.0.1:8000/api/fetch_staff/", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -40,7 +39,7 @@ export default function Staff() {
   const deleteStaff=async()=>{
     const staffID=staffToDelete.staff_id
     const body = JSON.stringify({ staffID });
-    const res = await fetch("http://127.0.0.1:8080/api/delete_staff/", {
+    const res = await fetch("http://127.0.0.1:8000/api/delete_staff/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json", 
@@ -126,7 +125,7 @@ const deleteStaffDialogFooter = (
 
 
   return (
-    <div className='staff-body'>
+    <div className='section-body'>
       <div className="container pt-3">
       <div className="d-flex flex-wrap align-items-center justify-content-end mb-3">
          <Button label="Add Staff" icon="pi pi-plus" onClick={() => setAddVisible(true)}/>
@@ -163,7 +162,13 @@ const deleteStaffDialogFooter = (
               <div className="row">
               <div className="col-4">
                 <div className="card p-3">
-                <img src="src/assets/chottu.jpg" alt="" width={150}/>
+                  {selectedStaff.staff_img?<>
+                    <img src={`http://127.0.0.1:8000${selectedStaff.staff_img}`} className="staffImg" alt="" width={150} height={150}/>
+                  </>:
+                  <>
+                  <span>No Staff Image found!!</span>
+                  </>}
+                
                 </div>
               </div>
               <div className="col-8">

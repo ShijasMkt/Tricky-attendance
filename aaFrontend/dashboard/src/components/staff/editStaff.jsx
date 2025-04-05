@@ -13,7 +13,7 @@ export default function EditStaff({ staff, onClose }) {
     const saveEdit=async(e)=>{
                 e.preventDefault()
                 const body = JSON.stringify({ formData });
-                    const res = await fetch("http://127.0.0.1:8080/api/edit_staff/", {
+                    const res = await fetch("http://127.0.0.1:8000/api/edit_staff/", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",

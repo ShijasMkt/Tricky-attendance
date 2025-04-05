@@ -18,14 +18,20 @@ export default function Navbar() {
             case '/':
                 setPage('Dashboard')
                 break;
-            case '/staff':
+            case '/staff/view':
                 setPage('Staff Overview')
                 break;
+            case '/staff/biometrics':
+                setPage('Staff Biometrics')
+                break;    
             case '/attendance/view':
                 setPage('Attendance Overview')
                 break;
             case '/attendance/mark':
                 setPage('Mark Attendance')
+                break;
+            case '/attendance/leave':
+                setPage('Leave Management')
                 break;
             default:
                 break;

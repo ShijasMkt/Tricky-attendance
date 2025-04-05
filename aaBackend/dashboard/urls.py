@@ -8,7 +8,11 @@ urlpatterns = [
     path('api/delete_staff/',deleteStaff),
     path('api/edit_staff/',editStaff),
     path('api/fetch_Attendance/',fetchAttendance),
-
+    path('api/mark_Attendance/',markAttendance),
+    path('api/mark_Leave/',markLeave),
+    path('api/update_Attendance/',updateAttendance),
+    path('api/upload_staff_img/',uploadStaffImg),
+    
 
     
 ]

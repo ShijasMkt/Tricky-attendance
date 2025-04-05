@@ -9,7 +9,15 @@ export default function Sidebar() {
 
     const menuItems = [
         { label: 'Dashboard', icon: 'pi pi-home', path: '/' },
-        { label: 'Staff', icon: 'pi pi-users', path: '/staff' },
+        { 
+            label: 'Staff', 
+            icon: 'pi pi-users', 
+            path: '/staff/view', 
+            subItems: [
+                { label: 'View Staffs', path: '/staff/view' },
+                { label: 'Staff Biometrics', path: '/staff/biometrics' },
+            ],
+        },
         {
             label: 'Attendance',
             icon: 'pi pi-calendar',
@@ -17,6 +25,7 @@ export default function Sidebar() {
             subItems: [
                 { label: 'View Attendance', path: '/attendance/view' },
                 { label: 'Mark Attendance', path: '/attendance/mark' },
+                { label: 'Leave Management', path: '/attendance/leave' },
             ],
         },
     ];

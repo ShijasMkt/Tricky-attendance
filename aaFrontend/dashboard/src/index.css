@@ -35,3 +35,20 @@
   background: #a31733 !important;
   color: #fff !important;
 }
+
+.form-control {
+  padding: 0.225rem 0.75rem !important;
+  font-size: 15px !important;
+  border-radius: 0px !important;
+}
+
+.form-label {
+  font-size: 13px !important;
+}
+
+.section-body{
+  background-color: white;
+  min-height: 80vh;
+  border-radius: 5px;
+  padding: 10px;
+}

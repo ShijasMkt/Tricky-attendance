@@ -7,6 +7,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from .tools.serializer import *
+from django.utils.dateparse import parse_date, parse_datetime
+from django.utils.timezone import now
 
 
 
@@ -114,16 +116,150 @@ def editStaff(request):
         
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def fetchAttendance(request): 
+def fetchAttendance(request):
+    if request.method == 'POST':
+        selected_date = request.data.get('date')  
+        
+        selected_attendance = Attendance.objects.select_related('staff').filter(date=selected_date)
+
+        if not selected_attendance.exists():
+            return Response({"error": "No attendance records found for the selected date."}, status=status.HTTP_404_NOT_FOUND)
+
+        all_attendance = []
+        for record in selected_attendance:
+            
+            staff_serializer = StaffDataSerializer(record.staff)
+
+            
+            attendance_data = {
+                "staff_id": record.staff.id,
+                "staff_name": record.staff.name,
+                "date": record.date,
+                "status": record.status,
+                "staff_data": staff_serializer.data,  
+                "time":record.timestamp,
+                "remarks":record.remarks
+            }
+            all_attendance.append(attendance_data)
+
+        return Response(all_attendance, status=status.HTTP_200_OK)
+
+            
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def markAttendance(request): 
     if request.method=='POST':
-            selected_date=request.data.get('date')  
-            selected_attendance=Attendance.objects.filter(date=selected_date)
-            if selected_attendance:
-                attendance_data=AttendanceDataSerializer(selected_attendance,many=True)
-                return(Response(status=status.HTTP_200_OK,data=attendance_data.data))
+        formData=request.data.get('data')
+        staff_id=formData['staff_id']
+        date=formData['date']
+        attendance_status=formData['status']
+        selected_staff=Staffs.objects.get(id=staff_id)
+
+        selected_attendance=Attendance.objects.filter(staff_id=staff_id,date=date).first()
+
+        if selected_attendance:
+            selected_attendance.status=attendance_status
+            selected_attendance.save()
+            return(Response(status=status.HTTP_200_OK))
+        
+        else:
+            new_attendance=Attendance(
+                staff=selected_staff,
+                date=date,
+                status=attendance_status
+            )
+            new_attendance.save()
+            return(Response(status=status.HTTP_200_OK))
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def markLeave(request): 
+    if request.method=='POST':
+        formData=request.data.get('data')
+        staff_id=formData['staff_id']
+        date=formData['date']
+        attendance_status=formData['status'] 
+        reason=formData['reason']     
+        attendance_status=formData['status']
+        selected_staff=Staffs.objects.get(id=staff_id)
+                       
+        selected_attendance=Attendance.objects.filter(staff_id=staff_id,date=date).first()
+
+        if selected_attendance:
+            selected_attendance.status=attendance_status
+            selected_attendance.remarks=reason
+            selected_attendance.save()
+            return(Response(status=status.HTTP_200_OK))
+        
+        else:
+            new_attendance=Attendance(
+                staff=selected_staff,
+                date=date,
+                status=attendance_status,
+                remarks=reason
+            )
+            new_attendance.save()
+            return(Response(status=status.HTTP_200_OK))
+        
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def updateAttendance(request):    
+     
+    date_str = request.data.get('date')
+    attendance_data = request.data.get('data')
+
+
+    if not date_str or not attendance_data:
+        return Response({'error': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+
+    for item in attendance_data:
+        staff_id = item.get('staff_id')
+        status_val = item.get('status')
+        timestamp_str = item.get('timestamp')
+
+        if not all([staff_id, status_val]):
+            continue  # Skip incomplete entries
+    
+        try:
+            staff = Staffs.objects.get(id=staff_id)
+        except Staffs.DoesNotExist:
+            continue  # Skip if staff not found
+
+        
+        
+        # Parse date and datetime
+        date = parse_date(date_str)
+        timestamp = parse_datetime(timestamp_str) if timestamp_str else now()
+
+
+        # Update or create attendance record
+        attendance, created = Attendance.objects.update_or_create(
+            staff=staff,
+            date=date,
+            defaults={
+                'status': status_val,
+                'timestamp': timestamp,
+            }
+        )
+
+    return Response({'success': 'Attendance updated successfully!'}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def uploadStaffImg(request): 
+    if request.method=="POST":
+        data = request.data
+        staff_id = data.get('staffID')
+        staff_selected = Staffs.objects.filter(id=staff_id).first()
+        if staff_selected:
+            img = request.FILES.get('img')
+            if img:
+                staff_selected.staff_img = img
+                staff_selected.save()
+                return Response(status=status.HTTP_200_OK)
             else:
-                return(Response(status=status.HTTP_404_NOT_FOUND))
-      
-
-
+                return Response({"error": "Image not provided"}, status=status.HTTP_400_BAD_REQUEST)
               
+           

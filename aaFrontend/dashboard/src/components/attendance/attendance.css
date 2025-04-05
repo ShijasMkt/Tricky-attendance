@@ -1,9 +1,4 @@
-#attendanceView-body{
-    background-color: white;
-    min-height: 80vh;
-    border-radius: 5px;
-    padding: 10px;
-}
+
 
 #attendanceView-body .card{
     padding: 5px;
@@ -22,9 +17,12 @@
     color: chocolate;
 }
 
-#attendanceMark-body{
-    background-color: white;
-    min-height: 80vh;
-    border-radius: 5px;
-    padding: 10px;
+.pi-pencil{
+    cursor: pointer;
+}
+
+.edit-btn{
+    position: absolute;
+    right: 10px;
+    top: 10px;
 }

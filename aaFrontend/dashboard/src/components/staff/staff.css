@@ -1,9 +1,4 @@
-.staff-body{
-    background-color: white;
-    min-height: 80vh;
-    border-radius: 5px;
-    padding: 10px;
-}
+
 
 tbody td{
     padding: 8px 10px;
@@ -41,22 +36,7 @@ td .inactive {
 }
 
 
-#add-staff input{
-    border-radius: 0px;
-}
 
-#add-staff textarea{
-    border-radius: 0px;
-}
-
-#add-staff .form-control {
-    padding: 0.225rem 0.75rem !important;
-    font-size: 15px !important;
-}
-
-#add-staff .form-label {
-    font-size: 13px;
-}
 
 #staff-view .card{
     border: none;
@@ -64,4 +44,36 @@ td .inactive {
 
 .p-dialog-content{
     background-color: #f5f5f5;
+}
+
+.staff-bio-view{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.staff-bio-view h6{
+    margin-bottom: 5px;
+}
+
+.add-img{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.edit-span{
+    cursor: pointer;
+    color: blue;
+}
+
+.CropperWrapper{
+    display: flex;
+    justify-content: space-around;
+}
+
+.staffImg{
+    background-color: white;
+    border-radius: 50%;
+    border: 1px solid grey;
 }

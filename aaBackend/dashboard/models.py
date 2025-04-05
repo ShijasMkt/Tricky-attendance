@@ -1,5 +1,9 @@
 from django.db import models
+import os
+import shutil
 
+
+from aaBackend import settings
 # Create your models here.
 
 class Users(models.Model):
@@ -18,6 +22,26 @@ class Staffs(models.Model):
     joined_date=models.DateField() 
     deleted=models.BooleanField(default=False)
     status=models.BooleanField(default=True)
+    staff_img=models.ImageField(upload_to='upload/staffs',blank=True,null=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)  
+
+        if self.staff_img:  
+            source_path = self.staff_img.path  
+            backup_root = os.path.join(settings.MEDIA_ROOT, 'dataset/staffs')  
+            
+           
+            folder_name = f"{self.staff_id}_{self.name.replace(' ', '_')}"
+            staff_folder = os.path.join(backup_root, folder_name)
+            if not os.path.exists(staff_folder):
+                os.makedirs(staff_folder)
+
+            
+            destination_path = os.path.join(staff_folder, os.path.basename(source_path))
+            shutil.copy2(source_path, destination_path)
+
+        super().save(*args, **kwargs) 
 
 class Attendance(models.Model):
     ATTENDANCE_STATUS = [
@@ -30,6 +54,7 @@ class Attendance(models.Model):
     date = models.DateField()
     status = models.CharField(max_length=1, choices=ATTENDANCE_STATUS, default='A')
     timestamp = models.DateTimeField(auto_now_add=True)
+    remarks=models.TextField(null=True)
 
     class Meta:
         unique_together = ('staff', 'date')  
