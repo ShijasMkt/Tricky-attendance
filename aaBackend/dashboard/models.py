@@ -22,26 +22,30 @@ class Staffs(models.Model):
     joined_date=models.DateField() 
     deleted=models.BooleanField(default=False)
     status=models.BooleanField(default=True)
-    staff_img=models.ImageField(upload_to='upload/staffs',blank=True,null=True)
+
+    
+
+class StaffImages(models.Model):
+    staff = models.ForeignKey(Staffs, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='upload/staffs/images/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)  
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  
+        super().save(*args, **kwargs)
 
-        if self.staff_img:  
-            source_path = self.staff_img.path  
-            backup_root = os.path.join(settings.MEDIA_ROOT, 'dataset/staffs')  
-            
-           
-            folder_name = f"{self.staff_id}_{self.name.replace(' ', '_')}"
+        if self.image:
+            source_path = self.image.path
+            backup_root = os.path.join(settings.MEDIA_ROOT, 'dataset/staffs')
+
+            folder_name = f"{self.staff.staff_id}_{self.staff.name.replace(' ', '_')}"
             staff_folder = os.path.join(backup_root, folder_name)
+
             if not os.path.exists(staff_folder):
                 os.makedirs(staff_folder)
 
-            
             destination_path = os.path.join(staff_folder, os.path.basename(source_path))
             shutil.copy2(source_path, destination_path)
 
-        super().save(*args, **kwargs) 
 
 class Attendance(models.Model):
     ATTENDANCE_STATUS = [

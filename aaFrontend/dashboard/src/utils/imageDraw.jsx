@@ -16,22 +16,30 @@
     const ctx = canvas.getContext('2d');
     const pixelRatio = window.devicePixelRatio;
   
-    canvas.width = crop.width * pixelRatio * scaleX;
-    canvas.height = crop.height * pixelRatio * scaleY;
+    // Calculate the size based on the smaller dimension to ensure perfect circle
+    const size = Math.min(crop.width * scaleX, crop.height * scaleY);
+    
+    // Set canvas to be perfectly square
+    canvas.width = size * pixelRatio;
+    canvas.height = size * pixelRatio;
   
     ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     ctx.imageSmoothingQuality = 'high';
   
-    // Apply circular mask
-    const centerX = crop.width * scaleX / 2;
-    const centerY = crop.height * scaleY / 2;
-    const radius = Math.min(crop.width * scaleX, crop.height * scaleY) / 2;
+    // Center coordinates for the circle
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size / 2;
   
     // Start clipping the image in a circle
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.closePath();
     ctx.clip();
+  
+    // Calculate centering offsets to position the cropped area in the square canvas
+    const offsetX = (size - crop.width * scaleX) / 2;
+    const offsetY = (size - crop.height * scaleY) / 2;
   
     // Draw the image inside the circle
     ctx.drawImage(
@@ -40,10 +48,9 @@
       crop.y * scaleY,
       crop.width * scaleX,
       crop.height * scaleY,
-      0,
-      0,
+      offsetX,
+      offsetY,
       crop.width * scaleX,
       crop.height * scaleY
     );
   }
-  

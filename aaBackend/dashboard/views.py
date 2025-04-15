@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny,IsAuthenticated
 from .tools.serializer import *
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.timezone import now
+from .tools.face_rec import extract_face_encodings,save_encodings_and_classifier,recognize_and_mark
 
 
 
@@ -256,10 +257,32 @@ def uploadStaffImg(request):
         if staff_selected:
             img = request.FILES.get('img')
             if img:
-                staff_selected.staff_img = img
-                staff_selected.save()
+                StaffImages.objects.create(staff=staff_selected, image=img)
+                encodings, labels = extract_face_encodings()  # Get encodings and labels
+                save_encodings_and_classifier(encodings, labels) 
                 return Response(status=status.HTTP_200_OK)
             else:
                 return Response({"error": "Image not provided"}, status=status.HTTP_400_BAD_REQUEST)
               
-           
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def deleteStaffImg(request): 
+    if request.method=='POST':
+        image_id=request.data.get('imageId')      
+        staff_id=request.data.get('staffId')
+
+        selected_img=StaffImages.objects.filter(id=image_id,staff_id=staff_id).first()
+
+        if selected_img:
+            selected_img.delete()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Image Not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def faceRecognitionAttendance(request):
+    result=recognize_and_mark()
+
+    return Response(result)        

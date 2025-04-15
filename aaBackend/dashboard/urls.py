@@ -12,6 +12,10 @@ urlpatterns = [
     path('api/mark_Leave/',markLeave),
     path('api/update_Attendance/',updateAttendance),
     path('api/upload_staff_img/',uploadStaffImg),
+    path('api/delete_staff_img/',deleteStaffImg),
+    path('api/face_rec_mark_Attendance/',faceRecognitionAttendance),
+
+    
     
 
     
