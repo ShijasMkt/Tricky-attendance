@@ -8,6 +8,7 @@ import { Dialog } from 'primereact/dialog';
 import AddStaff from './addStaff';
 import EditStaff from './editStaff';
 import Swal from 'sweetalert2';
+import { getValidAccessToken } from "../auth/tokenValidation";
         
 
 export default function Staff() {
@@ -24,10 +25,12 @@ export default function Staff() {
   
 
   const fetchStaffs=async()=>{
+    const token=await getValidAccessToken();
     const res = await fetch("http://127.0.0.1:8000/api/fetch_staff/", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
         },
     });
     if(res.ok){
@@ -39,10 +42,12 @@ export default function Staff() {
   const deleteStaff=async()=>{
     const staffID=staffToDelete.staff_id
     const body = JSON.stringify({ staffID });
+    const token=await getValidAccessToken();
     const res = await fetch("http://127.0.0.1:8000/api/delete_staff/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json", 
+            Authorization: `Bearer ${token}`,
         },
         body,
     });
@@ -76,7 +81,7 @@ const formatCurrency = (value) => {
   return value.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
 };
 
-const onRowSelect = () => {
+const onRowSelect =() => {
   setStaffView(true)
 };
 
@@ -162,8 +167,8 @@ const deleteStaffDialogFooter = (
               <div className="row">
               <div className="col-4">
                 <div className="card p-3">
-                  {selectedStaff.staff_img?<>
-                    <img src={`http://127.0.0.1:8000${selectedStaff.staff_img}`} className="staffImg" alt="" width={150} height={150}/>
+                  {selectedStaff.images.length>0?<>
+                    <img src={`http://127.0.0.1:8000${selectedStaff.images[0].image}`} className="staffImg" alt="" width={150} height={150}/>
                   </>:
                   <>
                   <span>No Staff Image found!!</span>

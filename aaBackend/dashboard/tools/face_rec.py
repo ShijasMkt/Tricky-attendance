@@ -1,18 +1,22 @@
-import face_recognition
-import cv2
 import os
-import pickle
-from datetime import date
-from aaBackend import settings
-from dashboard.models import Staffs, StaffImages, Attendance
-from django.utils import timezone
+import time
+import cv2
 import numpy as np
+import pickle
+import face_recognition
+from datetime import date
+from django.utils import timezone
+from django.conf import settings
+from dashboard.models import Staffs, Attendance
 from sklearn.neighbors import KNeighborsClassifier
+import logging
 
-ENCODING_DIR = os.path.join(settings.MEDIA_ROOT, 'face_encodings')
+logger = logging.getLogger(__name__)
+
+# Paths
+DATASET_DIR = os.path.join(settings.MEDIA_ROOT, 'dataset/staffs')
 ENCODINGS_PICKLE_PATH = os.path.join(settings.MEDIA_ROOT, 'face_encodings.pkl')
 CLASSIFIER_PICKLE_PATH = os.path.join(settings.MEDIA_ROOT, 'face_classifier.pkl')
-
 
 def extract_face_encodings():
     encodings = []
@@ -53,179 +57,109 @@ def save_encodings_and_classifier(encodings, labels):
     with open(ENCODINGS_PICKLE_PATH, 'wb') as enc_file:
         pickle.dump((encodings, labels), enc_file)
 
+def format_response(success=False, message="", **kwargs):
+    return {"success": success, "message": message, **kwargs}
 
+
+def capture_frame_from_camera():
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        raise RuntimeError("Cannot access webcam")
+    
+    time.sleep(0.5)
+    for _ in range(3):
+        ret, frame = cap.read()
+        if ret:
+            break
+        time.sleep(0.1)
+    cap.release()
+
+    if not ret or frame is None:
+        raise RuntimeError("Failed to capture frame from webcam")
+    
+    return frame
+
+
+def convert_bgr_to_rgb(frame):
+    resized = cv2.resize(frame, (0, 0), fx=0.75, fy=0.75)
+    return cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+
+
+def get_face_encodings(image):
+    try:
+        face_locations = face_recognition.face_locations(image, model="hog")
+        if not face_locations:
+            face_locations = face_recognition.face_locations(image, model="cnn")
+        
+        if not face_locations:
+            return [], "No face detected. Try better lighting or position."
+
+        encodings = face_recognition.face_encodings(image, face_locations, num_jitters=1)
+        if not encodings:
+            encodings = face_recognition.face_encodings(image, face_locations, num_jitters=3)
+
+        return encodings, "Success" if encodings else "Encoding failed"
+    except Exception as e:
+        logger.exception("Face encoding error")
+        return [], f"Face encoding error: {str(e)}"
+
+
+def load_classifier():
+    if not os.path.exists(CLASSIFIER_PICKLE_PATH):
+        raise FileNotFoundError("Classifier not found. Train the model first.")
+
+    with open(CLASSIFIER_PICKLE_PATH, 'rb') as f:
+        return pickle.load(f)
+
+
+def predict_staff_id(encodings, classifier):
+    for encoding in encodings:
+        try:
+            return classifier.predict([encoding])[0]
+        except Exception as e:
+            logger.warning(f"Prediction failed: {e}")
+    return None
+
+
+def mark_attendance(staff_id):
+    try:
+        staff = Staffs.objects.get(staff_id=staff_id)
+
+        attendance, created = Attendance.objects.get_or_create(
+            staff=staff,
+            date=date.today(),
+            defaults={"status": "P", "timestamp": timezone.now()}
+        )
+
+        if not created:
+            attendance.status = "P"
+            attendance.timestamp = timezone.now()
+            attendance.save()
+
+        return staff.name
+    except Staffs.DoesNotExist:
+        raise ValueError(f"Staff with ID {staff_id} not found")
 
 
 def recognize_and_mark():
-    video_capture = cv2.VideoCapture(0)  # 0 is typically the default for built-in webcams
-    
-    if not video_capture.isOpened():
-        return {
-            "success": False,
-            "message": "Failed to open webcam. Make sure no other application is using it."
-        }
-    
-    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    video_capture.set(cv2.CAP_PROP_BRIGHTNESS, 150)  # Adjust brightness if needed
-    
-    # Wait a moment for the camera to adjust
-    import time
-    time.sleep(0.5)
-    
-    
-    for _ in range(3):  # Capture 3 frames
-        ret, frame = video_capture.read()
-        if not ret:
-            break
-        time.sleep(0.1)  # Short delay between captures
-    
-    video_capture.release()  
-    
-    if not ret or frame is None:
-        return {
-            "success": False,
-            "message": "Failed to capture webcam image. Check webcam permissions."
-        }
-    
-    
-    frame = cv2.resize(frame, (0, 0), fx=0.75, fy=0.75)
-    
-    # Convert the frame from BGR (OpenCV default) to RGB
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    
-    # Verify the frame is in the correct format
-    if rgb_frame.shape[2] != 3 or rgb_frame.dtype != np.uint8:
-        return {
-            "success": False,
-            "message": "Invalid image format. Please try again."
-        }
-    
-    # Detect faces in the image
     try:
-        face_locations = face_recognition.face_locations(rgb_frame, model="hog")
-        
-        if not face_locations:
-            face_locations = face_recognition.face_locations(rgb_frame, model="cnn")
+        frame = capture_frame_from_camera()
+        rgb_frame = convert_bgr_to_rgb(frame)
+
+        encodings, msg = get_face_encodings(rgb_frame)
+        if not encodings:
+            return format_response(False, msg)
+
+        classifier = load_classifier()
+        staff_id = predict_staff_id(encodings, classifier)
+
+        if not staff_id:
+            return format_response(False, "Face not recognized. No match found.")
+
+        name = mark_attendance(staff_id)
+
+        return format_response(True, "Attendance marked", name=name, staff_id=staff_id)
+
     except Exception as e:
-        print(f"Error detecting faces: {e}")
-        return {
-            "success": False,
-            "message": "Error detecting faces. Please try again."
-        }
-    
-    if not face_locations:
-        return {
-            "success": False,
-            "message": "No face detected. Try adjusting your position or lighting."
-        }
-    
-    try:
-        # Try with different numbers of jitters for more reliable encoding
-        face_encodings = face_recognition.face_encodings(rgb_frame, face_locations, num_jitters=1)
-        
-        if not face_encodings:
-            # Try again with more jitters if first attempt failed
-            face_encodings = face_recognition.face_encodings(rgb_frame, face_locations, num_jitters=3)
-        
-        
-        if not face_encodings:
-            return {
-                "success": False,
-                "message": "Failed to encode facial features. Please try again with better lighting."
-            }
-    except TypeError as e:
-        print(f"Type error in face encoding: {e}")
-        try:
-            import dlib
-            detector = dlib.get_frontal_face_detector()
-            predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-            
-            # Convert face_locations to dlib rectangles
-            dlib_rects = [dlib.rectangle(left=loc[3], top=loc[0], right=loc[1], bottom=loc[2]) for loc in face_locations]
-            
-            # Get face landmarks
-            face_landmarks = [predictor(rgb_frame, rect) for rect in dlib_rects]
-            
-            # Try encoding with explicit landmarks
-            face_recognition_model = dlib.face_recognition_model_v1("dlib_face_recognition_resnet_model_v1.dat")
-            face_encodings = [np.array(face_recognition_model.compute_face_descriptor(rgb_frame, landmark)) for landmark in face_landmarks]
-            
-            if not face_encodings:
-                return {
-                    "success": False,
-                    "message": "Failed to encode face using fallback method. Please try again."
-                }
-        except Exception as e2:
-            print(f"Fallback encoding also failed: {e2}")
-            return {
-                "success": False,
-                "message": "Error processing facial features. Try adjusting lighting or position."
-            }
-    except Exception as e:
-        print(f"Error encoding faces: {e}")
-        return {
-            "success": False,
-            "message": "Unexpected error when processing face. Please try again."
-        }
-    
-    # Check if the classifier and encodings pickle file exist
-    if not os.path.exists(CLASSIFIER_PICKLE_PATH) or not os.path.exists(ENCODINGS_PICKLE_PATH):
-        return {
-            "success": False,
-            "message": "Model not trained. Please train the model first."
-        }
-    
-    # Load the trained classifier
-    try:
-        with open(CLASSIFIER_PICKLE_PATH, 'rb') as clf_file:
-            clf = pickle.load(clf_file)
-    except Exception as e:
-        print(f"Error loading classifier: {e}")
-        return {
-            "success": False,
-            "message": "Error loading face recognition model. Please contact administrator."
-        }
-    
-    for encoding in face_encodings:
-        try:
-            predicted_label = clf.predict([encoding])
-            staff_id = predicted_label[0]
-            
-            try:
-                staff = Staffs.objects.get(staff_id=staff_id)
-                
-                # Mark attendance for the detected staff
-                attendance, created = Attendance.objects.get_or_create(
-                    staff=staff,
-                    date=date.today(),
-                    defaults={"status": "P", "timestamp": timezone.now()}
-                )
-                if not created:
-                    attendance.status = "P"  # Mark as present again if the attendance already exists
-                    attendance.timestamp = timezone.now()
-                    attendance.save()
-                
-                return {
-                    "success": True,
-                    "staff_id": staff.staff_id,
-                    "name": staff.name,
-                    "message": "Attendance marked"
-                }
-            
-            except Staffs.DoesNotExist:
-                return {
-                    "success": False,
-                    "message": f"Staff with ID {staff_id} not found in DB."
-                }
-        except Exception as e:
-            print(f"Error identifying face: {e}")
-            return {
-                "success": False,
-                "message": "Error identifying face. Please try again."
-            }
-    
-    return {
-        "success": False,
-        "message": "No match found."
-    }
+        logger.exception("Recognition error")
+        return format_response(False, str(e))

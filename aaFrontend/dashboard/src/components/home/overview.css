@@ -1,0 +1,15 @@
+#overview-body .card-num{
+    font-size: 40px;
+    font-weight: 500;
+}
+
+#overview-body .card-link{
+    cursor: pointer;
+}
+
+#overview-body .card-body{
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    padding: 0;
+}

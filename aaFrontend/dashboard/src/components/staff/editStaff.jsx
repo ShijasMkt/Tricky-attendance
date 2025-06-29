@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
+import { getValidAccessToken } from "../auth/tokenValidation";
 
 export default function EditStaff({ staff, onClose }) {
     const [formData, setFormData] = useState({});
@@ -13,11 +13,12 @@ export default function EditStaff({ staff, onClose }) {
     const saveEdit=async(e)=>{
                 e.preventDefault()
                 const body = JSON.stringify({ formData });
+                const token=await getValidAccessToken();
                     const res = await fetch("http://127.0.0.1:8000/api/edit_staff/", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            
+                            Authorization: `Bearer ${token}`,
                         },
                         body,
                     });

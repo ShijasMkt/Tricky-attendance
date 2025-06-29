@@ -3,9 +3,11 @@ import { useEffect, useState,useRef} from "react";
 import "./attendance.css";
 import { Toast } from 'primereact/toast';
 import { formatDate } from '../../utils/formatDT';
+import { getValidAccessToken } from "../auth/tokenValidation";
 
 
 export default function Leave() {
+  
     const [staffs, setStaffs] = useState([]);
     const [formData, setFormData] = useState({
         staff_id: '',
@@ -20,10 +22,12 @@ export default function Leave() {
       }, []);
 
     const fetchStaffs = async () => {
+      const token=await getValidAccessToken();
         const res = await fetch("http://127.0.0.1:8000/api/fetch_staff/", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
         if (res.ok) {
@@ -55,11 +59,12 @@ export default function Leave() {
             date: formattedDate, 
           };
           const body = JSON.stringify({ data });
-      
+          const token=await getValidAccessToken();
           const res = await fetch("http://127.0.0.1:8000/api/mark_Leave/", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
             body,
           });

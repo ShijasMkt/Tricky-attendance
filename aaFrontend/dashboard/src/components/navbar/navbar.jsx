@@ -1,7 +1,7 @@
 import React, { useEffect,useState,useRef } from 'react'
 import { useLocation } from 'react-router-dom';
 import './navbar.css'
-import { logoutFunc } from '../../utils/logout';
+import { logoutFunc } from '../auth/logout';
 import { Menu } from 'primereact/menu';
         
 
@@ -50,7 +50,7 @@ export default function Navbar() {
                 <span>(Super Admin)</span>
                 </div>
                 
-                <img src="src/assets/admin.png" alt="" width={50} />
+                <img src="src/assets/admin.png" alt="admin" width={40} height={'100%'}/>
                 
             
             </div>

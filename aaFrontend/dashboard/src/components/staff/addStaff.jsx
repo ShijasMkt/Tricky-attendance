@@ -1,8 +1,8 @@
 import React from 'react'
 import './staff.css'
 import { useState } from 'react'
-import Cookies from 'js-cookie'
 import Swal from "sweetalert2";
+import { getValidAccessToken } from "../auth/tokenValidation";
 
 export default function AddStaff({onClose}) {
     
@@ -26,14 +26,14 @@ export default function AddStaff({onClose}) {
     };
 
     const saveStaff=async(e)=>{
-        const token=Cookies.get("accessToken");
         e.preventDefault()
         const body = JSON.stringify({ formData });
+        const token=await getValidAccessToken();
             const res = await fetch("http://127.0.0.1:8000/api/create_staff/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    
+                    Authorization: `Bearer ${token}`,
                 },
                 body,
             });

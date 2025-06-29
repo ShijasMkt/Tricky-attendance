@@ -1,14 +1,28 @@
 from django.db import models
 import os
 import shutil
-
+from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
+from django.contrib.auth.hashers import make_password
 
 from aaBackend import settings
 # Create your models here.
 
-class Users(models.Model):
-    name=models.CharField(max_length=20)
-    password=models.CharField(max_length=20)
+class UserManager(BaseUserManager):
+    def create_user(self, name, password=None):
+        if not name:
+            raise ValueError("Users must have an user name")
+        user = self.model(name=name)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+class Users(AbstractBaseUser):
+    name=models.CharField(max_length=20,unique=True)
+    is_active=models.BooleanField(default=True)
+
+    objects=UserManager()
+
+    USERNAME_FIELD = 'name'
     
 class Staffs(models.Model):
     staff_id=models.CharField(max_length=20)

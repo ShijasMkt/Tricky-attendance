@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny,IsAuthenticated
+from django.contrib.auth import authenticate
 from .tools.serializer import *
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.timezone import now
@@ -32,16 +33,15 @@ def checkLogin(request):
         user_name = data.get('uName')
         password = data.get('password')
         
-        try:
-            user = Users.objects.get(name=user_name, password=password)
-        except Users.DoesNotExist:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        user=authenticate(request,name=user_name,password=password)
 
-        tokens = get_tokens_for_user(user)
-        return Response({'access': tokens['access'], 'refresh': tokens['refresh']}, status=status.HTTP_200_OK)
+        if user:
+            tokens=get_tokens_for_user(user)
+            return Response({'access': tokens['access'], 'refresh': tokens['refresh']})
+        return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def createStaff(request):
     
     if request.method=='POST':
@@ -62,7 +62,7 @@ def createStaff(request):
         return Response(status=status.HTTP_200_OK)
     
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def fetchStaff(request):
     if request.method=="GET":
         staff_data=Staffs.objects.filter(deleted=False)    
@@ -71,7 +71,7 @@ def fetchStaff(request):
     
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def deleteStaff(request):
     if request.method=='POST':
         staffID=request.data.get('staffID') 
@@ -82,7 +82,7 @@ def deleteStaff(request):
             return Response(status=status.HTTP_200_OK)
         
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def editStaff(request):
     if request.method=='POST':
         formData=request.data.get('formData')
@@ -116,7 +116,7 @@ def editStaff(request):
             return(Response(status=status.HTTP_200_OK))
         
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def fetchAttendance(request):
     if request.method == 'POST':
         selected_date = request.data.get('date')  
@@ -147,7 +147,7 @@ def fetchAttendance(request):
 
             
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def markAttendance(request): 
     if request.method=='POST':
         formData=request.data.get('data')
@@ -173,7 +173,7 @@ def markAttendance(request):
             return(Response(status=status.HTTP_200_OK))
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def markLeave(request): 
     if request.method=='POST':
         formData=request.data.get('data')
@@ -203,7 +203,7 @@ def markLeave(request):
             return(Response(status=status.HTTP_200_OK))
         
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def updateAttendance(request):    
      
     date_str = request.data.get('date')
@@ -248,7 +248,7 @@ def updateAttendance(request):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def uploadStaffImg(request): 
     if request.method=="POST":
         data = request.data
@@ -266,7 +266,7 @@ def uploadStaffImg(request):
               
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def deleteStaffImg(request): 
     if request.method=='POST':
         image_id=request.data.get('imageId')      
@@ -281,7 +281,7 @@ def deleteStaffImg(request):
             return Response({"error": "Image Not found"}, status=status.HTTP_400_BAD_REQUEST)
         
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def faceRecognitionAttendance(request):
     result=recognize_and_mark()
 
