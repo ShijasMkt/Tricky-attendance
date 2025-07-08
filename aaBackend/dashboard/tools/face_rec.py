@@ -1,9 +1,8 @@
 import os
 import time
 import cv2
-import numpy as np
 import pickle
-import face_recognition
+from deepface import DeepFace
 from datetime import date
 from django.utils import timezone
 from django.conf import settings
@@ -21,27 +20,28 @@ CLASSIFIER_PICKLE_PATH = os.path.join(settings.MEDIA_ROOT, 'face_classifier.pkl'
 def extract_face_encodings():
     encodings = []
     labels = []
-    
+
     dataset_path = os.path.join(settings.MEDIA_ROOT, 'dataset/staffs')
-    
+
     for staff_folder in os.listdir(dataset_path):
         staff_path = os.path.join(dataset_path, staff_folder)
-        
+
         if os.path.isdir(staff_path):
             for img_name in os.listdir(staff_path):
                 img_path = os.path.join(staff_path, img_name)
-                
-                # Load the image
-                image = face_recognition.load_image_file(img_path)
-                
-                # Get the face encodings for each face in the image
-                face_encodings_in_image = face_recognition.face_encodings(image)
-                
-                # If faces are found, process them
-                if face_encodings_in_image:
-                    encodings.append(face_encodings_in_image[0])  # Take the first face encoding if multiple are found
-                    staff_id = staff_folder.split('_')[0]  
-                    labels.append(staff_id)
+
+                try:
+                    # DeepFace returns a list of representations for faces detected in the image
+                    representations = DeepFace.represent(img_path=img_path, model_name="Facenet512", enforce_detection=True)
+                    
+                    if representations:
+                        embedding = representations[0]["embedding"]
+                        encodings.append(embedding)
+
+                        staff_id = staff_folder.split('_')[0]  
+                        labels.append(staff_id)
+                except Exception as e:
+                    logger.warning(f"Failed to process {img_path}: {e}")
 
     return encodings, labels
 
@@ -61,23 +61,6 @@ def format_response(success=False, message="", **kwargs):
     return {"success": success, "message": message, **kwargs}
 
 
-# def capture_frame_from_camera():
-#     cap = cv2.VideoCapture(0)
-#     if not cap.isOpened():
-#         raise RuntimeError("Cannot access webcam")
-    
-#     time.sleep(0.5)
-#     for _ in range(3):
-#         ret, frame = cap.read()
-#         if ret:
-#             break
-#         time.sleep(0.1)
-#     cap.release()
-
-#     if not ret or frame is None:
-#         raise RuntimeError("Failed to capture frame from webcam")
-    
-#     return frame
 
 
 def convert_bgr_to_rgb(frame):
@@ -87,18 +70,14 @@ def convert_bgr_to_rgb(frame):
 
 def get_face_encodings(image):
     try:
-        face_locations = face_recognition.face_locations(image, model="hog")
-        if not face_locations:
-            face_locations = face_recognition.face_locations(image, model="cnn")
-        
-        if not face_locations:
+        representations = DeepFace.represent(img_path=image, model_name="Facenet512", enforce_detection=True)
+
+        if not representations:
             return [], "No face detected. Try better lighting or position."
 
-        encodings = face_recognition.face_encodings(image, face_locations, num_jitters=1)
-        if not encodings:
-            encodings = face_recognition.face_encodings(image, face_locations, num_jitters=3)
+        encodings = [rep["embedding"] for rep in representations]
 
-        return encodings, "Success" if encodings else "Encoding failed"
+        return encodings, "Success"
     except Exception as e:
         logger.exception("Face encoding error")
         return [], f"Face encoding error: {str(e)}"

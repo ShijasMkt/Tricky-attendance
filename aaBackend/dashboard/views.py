@@ -1,16 +1,13 @@
-from django.shortcuts import render
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.http import HttpResponse
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from django.contrib.auth import authenticate
 from .tools.serializer import *
+from django.core.files.storage import default_storage
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.timezone import now
-import numpy as np
 from .tools.face_rec import extract_face_encodings,save_encodings_and_classifier,recognize_and_mark
 
 
@@ -276,7 +273,13 @@ def deleteStaffImg(request):
         selected_img=StaffImages.objects.filter(id=image_id,staff_id=staff_id).first()
 
         if selected_img:
+            file_path = selected_img.image.path  
+
             selected_img.delete()
+
+            if default_storage.exists(file_path):
+                default_storage.delete(file_path)
+
             return Response(status=status.HTTP_200_OK)
         else:
             return Response({"error": "Image Not found"}, status=status.HTTP_400_BAD_REQUEST)
