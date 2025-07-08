@@ -280,12 +280,12 @@ export default function StaffBiometrics() {
 	const deleteImage = async (imageId) => {
 		setDeleteLoading(true);
 		try {
-      const token=await getValidAccessToken();
+			const token = await getValidAccessToken();
 			const res = await fetch(`http://127.0.0.1:8000/api/delete_staff_img/`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 				},
 				body: JSON.stringify({
 					imageId: imageId,

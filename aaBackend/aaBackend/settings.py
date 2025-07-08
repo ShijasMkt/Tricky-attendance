@@ -83,12 +83,12 @@ WSGI_APPLICATION = 'aaBackend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'trickydot',
-        'USER': 'shijas',
-        'PASSWORD': '',
+        'USER': 'postgres',
+        'PASSWORD': 'shijas',
         'HOST':'localhost',
-        'PORT':'3306',
+        'PORT':'5432',
     }
 }
 

@@ -20,5 +20,6 @@ urlpatterns = [
     path('api/upload_staff_img/',uploadStaffImg),
     path('api/delete_staff_img/',deleteStaffImg),
     path('api/face_rec_mark_Attendance/',faceRecognitionAttendance),
+    path('api/fetch_total_employees/',fetchTotalEmployees),
     
 ]

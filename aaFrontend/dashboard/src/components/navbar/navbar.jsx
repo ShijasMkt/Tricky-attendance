@@ -50,7 +50,7 @@ export default function Navbar() {
                 <span>(Super Admin)</span>
                 </div>
                 
-                <img src="src/assets/admin.png" alt="admin" width={40} height={'100%'}/>
+                <img src="/assets/admin.png" alt="admin" width={40} height={'100%'}/>
                 
             
             </div>

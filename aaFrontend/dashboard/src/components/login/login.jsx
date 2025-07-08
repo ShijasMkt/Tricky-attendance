@@ -62,7 +62,7 @@ export default function Login() {
                 <div className="card">
                     <div className="card-body">
                         <div className="text-center">
-                            <img src="src/assets/logo.svg" alt="" width={200}/>
+                            <img src="/assets/logo.svg" alt="" width={200}/>
                         </div>
                         <form  className='mt-3' >
                         <div className="input-sec ">

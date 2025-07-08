@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'auth_gate.dart';
+
+final GlobalKey<NavigatorState> navigatorKey=GlobalKey<NavigatorState>();
 void main(){
   runApp(const MyApp());
 }
@@ -10,6 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: "Flutter Demo",
       theme: ThemeData(
         scaffoldBackgroundColor: Color(0xf5f5f5f5),

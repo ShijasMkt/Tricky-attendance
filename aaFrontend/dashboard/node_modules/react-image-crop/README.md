@@ -6,7 +6,7 @@ An image cropping tool for React with no dependencies.
 
 [CodeSandbox Demo](https://codesandbox.io/s/react-image-crop-demo-with-react-hooks-y831o)
 
-![ReactCrop GIF](https://raw.githubusercontent.com/sekoyo/react-image-crop/master/crop-demo.gif)
+![ReactCrop GIF](https://raw.githubusercontent.com/dominictobias/react-image-crop/master/crop-demo.gif)
 
 ## Table of Contents
 
@@ -211,7 +211,7 @@ You might find that some images are rotated incorrectly. Unfortunately this is a
 
 You can use the following library to load images, which will correct the rotation for you: https://github.com/blueimp/JavaScript-Load-Image/
 
-You can read an issue on this subject here: https://github.com/sekoyo/react-image-crop/issues/181
+You can read an issue on this subject here: https://github.com/dominictobias/react-image-crop/issues/181
 
 If you're looking for a complete out of the box image editor which already handles EXIF rotation then consider using [Pintura](https://pqina.nl/pintura/?ref=react-image-crop).
 

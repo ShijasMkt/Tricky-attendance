@@ -42,7 +42,7 @@ class Staffs(models.Model):
 class StaffImages(models.Model):
     staff = models.ForeignKey(Staffs, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='upload/staffs/images/')
-    uploaded_at = models.DateTimeField(auto_now_add=True)  
+    uploaded_at = models.DateTimeField(auto_now_add=True,null=True)  
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -71,7 +71,7 @@ class Attendance(models.Model):
     staff = models.ForeignKey(Staffs, on_delete=models.CASCADE, related_name='attendances')
     date = models.DateField()
     status = models.CharField(max_length=1, choices=ATTENDANCE_STATUS, default='A')
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True,null=True)
     remarks=models.TextField(null=True)
 
     class Meta:

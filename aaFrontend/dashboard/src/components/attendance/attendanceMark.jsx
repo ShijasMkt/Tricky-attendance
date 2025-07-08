@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Toast } from "primereact/toast";
-import { BounceLoader } from "react-spinners";
+import { Dialog } from "primereact/dialog";
 import { getValidAccessToken } from "../auth/tokenValidation";
 import { formatDate } from "../../utils/formatDT";
+import FaceScan from "./faceScan";
 
 export default function AttendanceMark() {
 	const [staffs, setStaffs] = useState([]);
@@ -11,7 +12,8 @@ export default function AttendanceMark() {
 		date: new Date().toISOString().split("T")[0],
 		status: "P",
 	});
-	const [isLoading, setIsLoading] = useState(false);
+
+	const [scanFaceVisible, setScanFaceVisible] = useState(false);
 	const toast = useRef(null);
 
 	useEffect(() => {
@@ -81,55 +83,12 @@ export default function AttendanceMark() {
 		}
 	};
 
-	const scanFaceAndMarkAttendance = async () => {
-		setIsLoading(true);
-		const token = await getValidAccessToken();
-
-		try {
-			const res = await fetch("http://127.0.0.1:8000/api/face_rec_mark_Attendance/", {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-			const data = await res.json();
-			setIsLoading(false);
-
-			if (data.success) {
-				toast.current.show({
-					severity: "success",
-					summary: "Face Recognized",
-					detail: `${data.name} marked as Present.`,
-				});
-
-			} else {
-				toast.current.show({
-					severity: "error",
-					summary: "Failed",
-					detail: data.message || "No match found",
-				});
-			}
-		} catch (error) {
-			setIsLoading(false);
-			toast.current.show({
-				severity: "error",
-				summary: "Error",
-				detail: "Something went wrong. Please try again.",
-			});
-		}
-	};
-
+	
 	return (
 		<section id="attendanceMark-body" className="section-body">
 			<Toast ref={toast} />
 
-			{isLoading && (
-				<div className="d-flex justify-content-center align-items-center">
-					<BounceLoader size={100} color="#7d1329" />
-				</div>
-			)}
-
-			<div className="container pt-3" style={{ display: isLoading ? "none" : "block" }}>
+			<div className="container pt-3">
 				<form onSubmit={markAttendance}>
 					<div className="row">
 						<div className="col-4">
@@ -193,15 +152,22 @@ export default function AttendanceMark() {
 							<button
 								type="button"
 								className="btn btn-primary w-100"
-								onClick={scanFaceAndMarkAttendance}
-								disabled={isLoading}
+								onClick={() => setScanFaceVisible(true)}
 							>
-								{isLoading ? "Scanning..." : "Scan Face"}
+								Scan Face
 							</button>
 						</div>
 					</div>
 				</form>
 			</div>
+			<Dialog
+				header="Scan Face"
+				visible={scanFaceVisible}
+				onHide={() => setScanFaceVisible(false)}
+				style={{width:'60vw'}}
+			>
+				<FaceScan onClose={()=>setScanFaceVisible(false)}/>
+			</Dialog>
 		</section>
 	);
 }

@@ -13,3 +13,20 @@
     align-items: end;
     padding: 0;
 }
+
+#overview-body .logged-block{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+/* #overview-body .logged-block span{
+    margin-inline: 5px;
+} */
+
+#overview-body .date-display span{
+    font-size: 30px;
+    color: darkblue;
+}

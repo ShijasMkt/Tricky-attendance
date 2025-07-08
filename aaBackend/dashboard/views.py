@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate
 from .tools.serializer import *
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.timezone import now
+import numpy as np
 from .tools.face_rec import extract_face_encodings,save_encodings_and_classifier,recognize_and_mark
 
 
@@ -280,9 +281,26 @@ def deleteStaffImg(request):
         else:
             return Response({"error": "Image Not found"}, status=status.HTTP_400_BAD_REQUEST)
         
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def faceRecognitionAttendance(request):
-    result=recognize_and_mark()
+    image_file=request.FILES.get("image")
+    if not image_file:
+        return Response({"success": False, "message": "No image uploaded"}, status=400)
+    
+    import numpy as np
+    import cv2
+    file_bytes = np.asarray(bytearray(image_file.read()), dtype=np.uint8)
+    frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-    return Response(result)        
+    # Use your existing pipeline with `frame`
+    result = recognize_and_mark(frame)
+
+    return Response(result)    
+
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fetchTotalEmployees(request):
+    total_employees=Staffs.objects.filter(deleted=False).count()
+    return Response(total_employees,status=status.HTTP_200_OK)

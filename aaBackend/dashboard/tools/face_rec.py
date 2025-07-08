@@ -61,23 +61,23 @@ def format_response(success=False, message="", **kwargs):
     return {"success": success, "message": message, **kwargs}
 
 
-def capture_frame_from_camera():
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        raise RuntimeError("Cannot access webcam")
+# def capture_frame_from_camera():
+#     cap = cv2.VideoCapture(0)
+#     if not cap.isOpened():
+#         raise RuntimeError("Cannot access webcam")
     
-    time.sleep(0.5)
-    for _ in range(3):
-        ret, frame = cap.read()
-        if ret:
-            break
-        time.sleep(0.1)
-    cap.release()
+#     time.sleep(0.5)
+#     for _ in range(3):
+#         ret, frame = cap.read()
+#         if ret:
+#             break
+#         time.sleep(0.1)
+#     cap.release()
 
-    if not ret or frame is None:
-        raise RuntimeError("Failed to capture frame from webcam")
+#     if not ret or frame is None:
+#         raise RuntimeError("Failed to capture frame from webcam")
     
-    return frame
+#     return frame
 
 
 def convert_bgr_to_rgb(frame):
@@ -141,9 +141,8 @@ def mark_attendance(staff_id):
         raise ValueError(f"Staff with ID {staff_id} not found")
 
 
-def recognize_and_mark():
+def recognize_and_mark(frame):
     try:
-        frame = capture_frame_from_camera()
         rgb_frame = convert_bgr_to_rgb(frame)
 
         encodings, msg = get_face_encodings(rgb_frame)
