@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getValidAccessToken } from "../auth/tokenValidation";
+import { useAuth } from "../auth/AuthContext";
+
 
 export default function EditStaff({ staff, onClose }) {
+    const {logout} =useAuth();
     const [formData, setFormData] = useState({});
 
     useEffect(() => {
@@ -13,13 +16,13 @@ export default function EditStaff({ staff, onClose }) {
     const saveEdit=async(e)=>{
                 e.preventDefault()
                 const body = JSON.stringify({ formData });
-                const token=await getValidAccessToken();
-                    const res = await fetch("http://127.0.0.1:8000/api/edit_staff/", {
+                await getValidAccessToken(logout);
+                    const res = await fetch("http://localhost:8000/api/edit_staff/", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
                         },
+                        credentials:'include',
                         body,
                     });
                     if(res.ok){

@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import "./attendance.css";
 import { Calendar } from "primereact/calendar";
 import { Dialog } from "primereact/dialog";
-import { formatDate, formatTime } from "../../utils/formatDT";
+import { formatDate, formatTime } from "../utils/formatDT";
 import { Toast } from "primereact/toast";
 import { getValidAccessToken } from "../auth/tokenValidation";
+import { useAuth } from "../auth/AuthContext";
 
 export default function AttendanceView() {
+	const {logout} =useAuth();
 	const toast = useRef(null);
 	const [attendance, setAttendance] = useState({ present: [], absent: [], leave: [] });
 	const [editPage, setEditPage] = useState("");
@@ -20,13 +22,13 @@ export default function AttendanceView() {
 	}, []);
 
 	const fetchAttendance = async (date) => {
-		const token = await getValidAccessToken();
-		const res = await fetch("http://127.0.0.1:8000/api/fetch_Attendance/", {
+		await getValidAccessToken(logout);
+		const res = await fetch("http://localhost:8000/api/fetch_Attendance/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials:'include',
 			body: JSON.stringify({ date }),
 		});
 
@@ -92,7 +94,7 @@ export default function AttendanceView() {
 	const submitEditChanges = async () => {
 		const formattedDate = formatDate(selectedDate);
 		const token = await getValidAccessToken();
-
+		if (!token) return;
 		const data = {
 			date: formattedDate,
 			data: editAttendanceList.map((item) => ({
@@ -102,12 +104,12 @@ export default function AttendanceView() {
 			})),
 		};
 
-		const response = await fetch("http://127.0.0.1:8000/api/update_Attendance/", {
+		const response = await fetch("http://localhost:8000/api/update_Attendance/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials:'include',
 			body: JSON.stringify(data),
 		});
 

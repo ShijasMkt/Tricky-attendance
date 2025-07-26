@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
 import { getValidAccessToken } from "../auth/tokenValidation";
-import { formatDate } from "../../utils/formatDT";
+import { formatDate } from "../utils/formatDT";
 import FaceScan from "./faceScan";
+import { useAuth } from "../auth/AuthContext";
 
 export default function AttendanceMark() {
+	const {logout} =useAuth();
 	const [staffs, setStaffs] = useState([]);
 	const [formData, setFormData] = useState({
 		staff_id: "",
@@ -19,13 +21,13 @@ export default function AttendanceMark() {
 	useEffect(() => {
 		let isMounted = true;
 		(async () => {
-			const token = await getValidAccessToken();
-			const res = await fetch("http://127.0.0.1:8000/api/fetch_staff/", {
+			await getValidAccessToken(logout);
+			const res = await fetch("http://localhost:8000/api/fetch_staff/", {
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
 				},
+				credentials:'include'
 			});
 			if (res.ok && isMounted) {
 				const data = await res.json();
@@ -46,7 +48,7 @@ export default function AttendanceMark() {
 
 	const markAttendance = async (e) => {
 		e.preventDefault();
-		const token = await getValidAccessToken();
+		await getValidAccessToken(logout);
 		const body = JSON.stringify({
 			data: {
 				...formData,
@@ -54,12 +56,12 @@ export default function AttendanceMark() {
 			},
 		});
 
-		const res = await fetch("http://127.0.0.1:8000/api/mark_Attendance/", {
+		const res = await fetch("http://localhost:8000/api/mark_Attendance/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials:'include',
 			body,
 		});
 

@@ -9,19 +9,57 @@ from django.core.files.storage import default_storage
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.timezone import now
 from .tools.face_rec import extract_face_encodings,save_encodings_and_classifier,recognize_and_mark
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.exceptions import TokenError
 
 
 
+class CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get('refreshToken')
+        
+        if not refresh_token:
+            return Response(
+                {'error': 'No refresh token cookie found'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+       
+        serializer = self.get_serializer(data={"refresh": refresh_token})
+        
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            return Response(
+                {'error': 'Refresh token expired or invalid'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        except Exception as e:
+            return Response(
+                {'error': 'Token validation failed'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+       
+        access = serializer.validated_data.get('access')
+        res = Response({'detail': 'Token refreshed successfully'})
+        res.set_cookie(
+            key='accessToken',
+            value=access,
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite='Lax',
+            max_age=60*5,  # 5 minutes
+            path='/',
+        )
+        
+        return res
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_auth(request):
+    return Response({'detail': 'Authenticated'}, status=200)
 
-
-# Create your views here.
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -31,12 +69,77 @@ def checkLogin(request):
         user_name = data.get('uName')
         password = data.get('password')
         
-        user=authenticate(request,name=user_name,password=password)
+        user=authenticate(request,username=user_name,password=password)
 
         if user:
-            tokens=get_tokens_for_user(user)
-            return Response({'access': tokens['access'], 'refresh': tokens['refresh']})
-        return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+            
+            response = Response({
+                'detail': 'Login successful',
+                'user': user.name,
+            })
+            
+            # Set refresh token cookie (longer expiry)
+            response.set_cookie(
+                key='refreshToken',
+                value=str(refresh),
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax',
+                max_age=60*60*24*7,
+                path='/',  
+            )
+            
+            # Set access token cookie (shorter expiry)
+            response.set_cookie(
+                key='accessToken',
+                value=str(access),
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax',
+                max_age=60*5,
+                path='/',  
+            )
+            
+            return response
+        else:
+            return Response(
+                {'error': 'Invalid credentials'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_func(request):
+    refresh_token = request.COOKIES.get('refreshToken')
+    
+    if refresh_token:
+        try:
+            # Blacklist the refresh token to invalidate it
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except TokenError:
+            pass
+
+    response = Response({
+        'detail': 'Logout successful'
+    }, status=status.HTTP_200_OK)
+    
+    response.delete_cookie(
+        key='refreshToken',
+        path='/',
+        samesite='Lax'
+    )
+    
+    response.delete_cookie(
+        key='accessToken', 
+        path='/',
+        samesite='Lax'
+    )
+    
+    return response
+
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

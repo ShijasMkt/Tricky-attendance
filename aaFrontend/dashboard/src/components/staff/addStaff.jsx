@@ -3,8 +3,11 @@ import "./staff.css";
 import { useState, useRef } from "react";
 import { Toast } from "primereact/toast";
 import { getValidAccessToken } from "../auth/tokenValidation";
+import { useAuth } from "../auth/AuthContext";
+
 
 export default function AddStaff({ onClose }) {
+	const {logout} =useAuth();
 	const toast = useRef(null);
 	const [formData, setFormData] = useState({
 		staff_id: "",
@@ -28,13 +31,13 @@ export default function AddStaff({ onClose }) {
 	const saveStaff = async (e) => {
 		e.preventDefault();
 		const body = JSON.stringify({ formData });
-		const token = await getValidAccessToken();
-		const res = await fetch("http://127.0.0.1:8000/api/create_staff/", {
+		await getValidAccessToken(logout);
+		const res = await fetch("http://localhost:8000/api/create_staff/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials:'include',
 			body,
 		});
 		if (res.ok) {

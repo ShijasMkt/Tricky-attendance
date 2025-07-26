@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { formatDate, formatTime } from "../../utils/formatDT";
+import { formatDate, formatTime } from "../utils/formatDT";
 import "./overview.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getValidAccessToken } from "../auth/tokenValidation";
+import { useAuth } from "../auth/AuthContext";
+
 
 export default function Overview() {
+	const {logout} =useAuth();
 	const navigateTo = useNavigate();
 	const [timeNow, setTimeNow] = useState(new Date());
 	const [attendance, setAttendance] = useState({
@@ -51,14 +54,14 @@ export default function Overview() {
 	}, [attendance.present.length, totalEmployees]);
 
 	const fetchAttendance = async (date) => {
+		await getValidAccessToken(logout);
 		const body = JSON.stringify({ date });
-		const token = await getValidAccessToken();
-		const res = await fetch("http://127.0.0.1:8000/api/fetch_Attendance/", {
+		const res = await fetch("http://localhost:8000/api/fetch_Attendance/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials:'include',
 			body,
 		});
 		if (res.ok) {
@@ -82,15 +85,15 @@ export default function Overview() {
 	};
 
 	const fetchTotalEmployees = async () => {
-		const token = await getValidAccessToken();
+		await getValidAccessToken(logout);
 		const res = await fetch(
-			"http://127.0.0.1:8000/api/fetch_total_employees/",
+			"http://localhost:8000/api/fetch_total_employees/",
 			{
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
 				},
+				credentials:'include',
 			}
 		);
 		if (res.ok) {
@@ -121,9 +124,9 @@ export default function Overview() {
 								<h6 className="mb-4">Today's Log</h6>
 
 								{attendance.present.map((presentStaff) => (
-									<div className="logged-block" key={presentStaff.id}>
+									<div className="logged-block" key={presentStaff.staff_id}>
 										<img
-											src={`http://127.0.0.1:8000${presentStaff.staff_data.images[0].image}`}
+											src={`http://localhost:8000${presentStaff.staff_data.images[0].image}`}
 											alt={`${presentStaff.staff_name}'s photo`}
 											className="img-thumbnail rounded-circle"
 											width={60}

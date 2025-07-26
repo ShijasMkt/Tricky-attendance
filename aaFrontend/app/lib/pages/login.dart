@@ -93,12 +93,7 @@ class _LoginState extends State<Login> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(
-                          'assets/images/trickLogo.png',
-                          height: 100,
-                          width: 200,
-                          fit: BoxFit.contain,
-                        ),
+                        Text("TrickyAttendence",textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF7D1329),fontSize: 20)),
                         SizedBox(height: 20),
 
                         TextFormField(
@@ -138,9 +133,9 @@ class _LoginState extends State<Login> {
                         MaterialButton(
                           onPressed: _checkLogin,
                           minWidth: double.infinity,
-                          child: Text('Login'),
                           color: Color(0xFF7D1329),
                           textColor: Colors.white,
+                          child: Text('Login'),
                         ),
                       ],
                     ),

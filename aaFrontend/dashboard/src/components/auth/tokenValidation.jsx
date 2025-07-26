@@ -1,22 +1,20 @@
-import Cookies from "js-cookie";
-import { logoutFunc } from "./logout";
+import { useAuth } from "./AuthContext";
 
-export async function getValidAccessToken() {
-  const access = Cookies.get("accessToken");
-  const refresh = Cookies.get("refreshToken");
+export async function getValidAccessToken(logoutCallback) {
+	const res = await fetch("http://localhost:8000/api/token/refresh/", {
+		method: "POST",
+		credentials: "include",
+	});
 
+	if (res.ok) {
+		return true;
+	} else {
+		const response = await fetch("http://localhost:8000/api/logout/", {
+			method: "POST",
+			credentials: "include",
+		});
 
-  const res = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh }),
-  });
-
-  if (res.ok) {
-    const data = await res.json();
-    Cookies.set("accessToken", data.access);
-    return data.access;
-  } else {
-    logoutFunc()
-  }
+		logoutCallback();
+		return false;
+	}
 }

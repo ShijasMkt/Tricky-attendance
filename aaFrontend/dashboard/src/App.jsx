@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate, Link ,ScrollRestoration} from "react-router-dom";
-import Cookies from "js-cookie";
 import './App.css'
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'primereact/resources/themes/bootstrap4-light-blue/theme.css';
@@ -13,22 +12,24 @@ import StaffBiometrics from './components/staff/staffBiometrics';
 import AttendanceView from './components/attendance/attendanceView';
 import AttendanceMark from './components/attendance/attendanceMark';
 import Leave from './components/attendance/leave';
+import { useAuth } from './components/auth/AuthContext';
+import { DotLoader } from 'react-spinners';
 
 function App() {
-
   
-  const isLogged = () => {
-    const accessToken = Cookies.get('accessToken');
-    return !!accessToken;
-  }
+  const {isLoggedIn}=useAuth();
 
-  const isUserLogged=isLogged();
+  if (isLoggedIn==null) return (
+    <div className='loader-page'>
+      <DotLoader/>
+    </div>
+  )
   return (
     <>
     
       <Router>
         <Routes>
-          <Route path='/' element={isUserLogged?<Dashboard/>:<Login/>}>
+          <Route path='/' element={isLoggedIn?<Dashboard/>:<Login/>}>
             <Route index element={<Overview/>}/>
             <Route path='*' element={<Navigate to="/" />}/>
             <Route path='staff/view' element={<Staff/>}/>

@@ -9,8 +9,11 @@ import AddStaff from "./addStaff";
 import EditStaff from "./editStaff";
 import { Toast } from "primereact/toast";
 import { getValidAccessToken } from "../auth/tokenValidation";
+import { useAuth } from "../auth/AuthContext";
+
 
 export default function Staff() {
+	const {logout} =useAuth();
 	useEffect(() => {
 		fetchStaffs();
 	}, []);
@@ -24,13 +27,13 @@ export default function Staff() {
 	const [deleteStaffDialog, setDeleteStaffDialog] = useState(false);
 
 	const fetchStaffs = async () => {
-		const token = await getValidAccessToken();
-		const res = await fetch("http://127.0.0.1:8000/api/fetch_staff/", {
+		await getValidAccessToken(logout);
+		const res = await fetch("http://localhost:8000/api/fetch_staff/", {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials:'include'
 		});
 		if (res.ok) {
 			const data = await res.json();
@@ -41,13 +44,13 @@ export default function Staff() {
 	const deleteStaff = async () => {
 		const staffID = staffToDelete.staff_id;
 		const body = JSON.stringify({ staffID });
-		const token = await getValidAccessToken();
-		const res = await fetch("http://127.0.0.1:8000/api/delete_staff/", {
+		await getValidAccessToken(logout);
+		const res = await fetch("http://localhost:8000/api/delete_staff/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${token}`,
 			},
+			credentials:'include',
 			body,
 		});
 		if (res.ok) {
@@ -220,7 +223,7 @@ export default function Staff() {
 												{selectedStaff.images.length > 0 ? (
 													<>
 														<img
-															src={`http://127.0.0.1:8000${selectedStaff.images[0].image}`}
+															src={`http://localhost:8000${selectedStaff.images[0].image}`}
 															className="staffImg"
 															alt=""
 															width={150}

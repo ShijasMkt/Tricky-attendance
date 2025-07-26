@@ -1,10 +1,11 @@
 import 'dart:convert';
+
 import 'package:app/logout_func.dart';
-import 'package:app/validate_token.dart';
+import 'package:app/pages/scan_face.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-import 'package:camera/camera.dart';
+import "package:app/validate_token.dart";
 import 'package:http/http.dart' as http;
 
 class Home extends StatefulWidget {
@@ -18,8 +19,9 @@ class _HomeState extends State<Home> {
   String formattedDate = "";
   String currentTime = "";
   late Timer timer;
-  List<CameraDescription> cameras = [];
-  CameraController? cameraController;
+  List<Map<String, dynamic>> present = [];
+  List<Map<String, dynamic>> absent = [];
+  List<Map<String, dynamic>> leave = [];
 
   @override
   void initState() {
@@ -28,9 +30,49 @@ class _HomeState extends State<Home> {
     final formatter = DateFormat('dd MMMM yyyy');
     formattedDate = formatter.format(now);
 
-    _initializeCamera();
     _updateTime();
     timer = Timer.periodic(Duration(seconds: 1), (Timer t) => _updateTime());
+
+    _fetchAttendence();
+  }
+
+  Future<void> _fetchAttendence() async {
+    final token = await getValidToken();
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final res = await http.post(
+      Uri.parse('http://192.168.100.5:8000/api/fetch_Attendance/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'date': today}),
+    );
+
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+
+      setState(() {
+        present = data
+            .where((e) => e['status'] == 'P')
+            .toList()
+            .cast<Map<String, dynamic>>();
+
+        present.sort((a,b){
+          DateTime timeA=DateTime.parse(a['time']);
+          DateTime timeB=DateTime.parse(b['time']);
+          return timeB.compareTo(timeA);
+        });
+        absent = data
+            .where((e) => e['status'] == 'A')
+            .toList()
+            .cast<Map<String, dynamic>>();
+        leave = data
+            .where((e) => e['status'] == 'L')
+            .toList()
+            .cast<Map<String, dynamic>>();
+      });
+    }
   }
 
   void _updateTime() {
@@ -42,82 +84,6 @@ class _HomeState extends State<Home> {
     });
   }
 
-  Future<void> _initializeCamera() async {
-    cameras = await availableCameras();
-  }
-
- void _showCameraPopUp() async {
-  if (cameras.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("No Cameras Available!")),
-    );
-    return;
-  }
-
-  cameraController = CameraController(cameras[1], ResolutionPreset.high);
-  try {
-    await cameraController!.initialize();
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Failed to initialize camera: $e")),
-    );
-    return;
-  }
-
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => Dialog(
-      insetPadding: EdgeInsets.all(10),
-      backgroundColor: Colors.black,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final aspectRatio = 0.7;
-          final width = constraints.maxWidth;
-          final height = width / aspectRatio;
-
-          return Stack(
-            children: [
-              Center(
-                child: SizedBox(
-                  width: width,
-                  height: height,
-                  child: CameraPreview(cameraController!),
-                ),
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: IconButton(
-                  onPressed: () {
-                    cameraController?.dispose();
-                    Navigator.of(context).pop();
-                  },
-                  icon: Icon(Icons.close, color: Colors.white, size: 30),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    ),
-  );
-  scanFaceAndMarkAttendance();
-}
-
-void scanFaceAndMarkAttendance() async{
-  print("++++++++");
-  final token=await getValidToken();
-  final res=await http.get(
-    Uri.parse('http://192.168.100.5:8000/api/face_rec_mark_Attendance/'),
-    headers: {'Authorization':'Bearer $token'}
-  );
-  final data=jsonDecode(res.body);
-
-  print(data);
-}
-
-
   @override
   void dispose() {
     timer.cancel();
@@ -128,7 +94,7 @@ void scanFaceAndMarkAttendance() async{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("TrickyDot", style: TextStyle(color: Colors.white)),
+        title: Text("TrickyAttendence", style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF7D1329),
         actions: [
           PopupMenuButton(
@@ -143,39 +109,105 @@ void scanFaceAndMarkAttendance() async{
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height,
-          ),
-          child: Container(
-            padding: EdgeInsets.all(20),
-            alignment: Alignment.topCenter,
-            child: Column(
-              children: [
-                SizedBox(height: 20),
-                Text(
-                  formattedDate,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
-                Container(
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    color: Color(0xf5f5f5f5),
+      body: RefreshIndicator(
+        onRefresh: _fetchAttendence,
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: Container(
+              padding: EdgeInsets.all(20),
+              alignment: Alignment.topCenter,
+              child: Column(
+                children: [
+                  SizedBox(height: 20),
+                  Text(
+                    formattedDate,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  child: Text(
-                    currentTime,
-                    style: TextStyle(fontSize: 24, color: Colors.green),
+                  SizedBox(height: 20),
+                  Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      color: Color(0xf5f5f5f5),
+                    ),
+                    child: Text(
+                      currentTime,
+                      style: TextStyle(fontSize: 24, color: Colors.green),
+                    ),
                   ),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => _showCameraPopUp(),
-                  child: Text("Scan Face"),
-                ),
-              ],
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          insetPadding: EdgeInsets.all(15),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: MediaQuery.of(context).size.height * 0.8,
+                            child: FaceScanScreen(
+                              onClose: () {
+                                _fetchAttendence();
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text("Scan Face"),
+                  ),
+                  SizedBox(height: 40),
+                  Text(
+                    "Today's Log:",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  ...present.map(
+                    (staff) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12, 
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          tileColor: Colors.transparent,
+                          leading: CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              "http://192.168.100.5:8000${staff['staff_data']['images'][0]['image']}",
+                            ),
+                          ),
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("#${staff['staff_data']['staff_id']}"),
+                              Text("${staff['staff_name']}"),
+                            ],
+                          ),
+        
+                          trailing: Text(
+                            DateFormat(
+                              'hh:mm a',
+                            ).format(DateTime.parse(staff['time']).toLocal()),
+                            style: TextStyle(color: Colors.green, fontSize: 14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

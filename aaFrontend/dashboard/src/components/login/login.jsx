@@ -1,13 +1,12 @@
 import React from 'react'
 import { useState,useRef } from 'react';
 import "./login.css"
-import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
 import { Toast } from 'primereact/toast';
+import { useAuth } from '../auth/AuthContext';
         
 
 export default function Login() {
-    const navigateTo=useNavigate();
+    const {login}=useAuth();
     const toast = useRef(null);
     const [formData, setFormData] = useState({
 		uName: "",
@@ -26,25 +25,19 @@ export default function Login() {
         e.preventDefault();
         
             const body = JSON.stringify({ uName, password });
-            const res = await fetch("http://127.0.0.1:8000/api/check_login/", {
+            const res = await fetch("http://localhost:8000/api/check_login/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials:'include',
                 body,
             });
            
             
             if(res.ok){
-                const data = await res.json();
-                const { access, refresh } = data;
-
-                
-                Cookies.set("accessToken", access, { expires: 1, sameSite: "None", secure: true });
-                Cookies.set("refreshToken", refresh, { expires: 7, sameSite: "None", secure: true });
-
                 toast.current.show({severity:'success', summary: 'Success', detail:'Logged In', life: 3000});
-                window.location="/"
+                login();
             }
             else{
                 toast.current.show({severity:'error', summary: 'Error', detail:'Invalid credentials!', life: 3000});

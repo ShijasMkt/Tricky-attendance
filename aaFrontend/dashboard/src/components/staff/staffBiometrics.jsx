@@ -2,11 +2,14 @@ import React, { useEffect, useState, useRef } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Toast } from "primereact/toast";
-import { drawImageOnCanvas } from "../../utils/imageDraw";
+import { drawImageOnCanvas } from "../utils/imageDraw";
 import "./staff.css";
 import { getValidAccessToken } from "../auth/tokenValidation";
+import { useAuth } from "../auth/AuthContext";
+
 
 export default function StaffBiometrics() {
+	const {logout} =useAuth();
 	const [staffs, setStaffs] = useState([]);
 	const [isStaffSelected, setIsStaffSelected] = useState(false);
 	const [selectedStaff, setSelectedStaff] = useState();
@@ -53,13 +56,13 @@ export default function StaffBiometrics() {
 	const fetchStaffs = async () => {
 		setLoading(true);
 		try {
-			const token = await getValidAccessToken();
-			const res = await fetch("http://127.0.0.1:8000/api/fetch_staff/", {
+			await getValidAccessToken(logout);
+			const res = await fetch("http://localhost:8000/api/fetch_staff/", {
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
 				},
+				credentials:'include'
 			});
 			if (res.ok) {
 				const data = await res.json();
@@ -231,12 +234,10 @@ export default function StaffBiometrics() {
 			const data = new FormData();
 			data.append("staffID", selectedStaff.id);
 			data.append("img", blob, `${selectedStaff.name}_image.png`);
-			const token = await getValidAccessToken();
-			const res = await fetch("http://127.0.0.1:8000/api/upload_staff_img/", {
+			await getValidAccessToken(logout);
+			const res = await fetch("http://localhost:8000/api/upload_staff_img/", {
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
+				credentials:'include',
 				body: data,
 			});
 
@@ -280,13 +281,13 @@ export default function StaffBiometrics() {
 	const deleteImage = async (imageId) => {
 		setDeleteLoading(true);
 		try {
-			const token = await getValidAccessToken();
-			const res = await fetch(`http://127.0.0.1:8000/api/delete_staff_img/`, {
+			await getValidAccessToken(logout);
+			const res = await fetch(`http://localhost:8000/api/delete_staff_img/`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
 				},
+				credentials:'include',
 				body: JSON.stringify({
 					imageId: imageId,
 					staffId: selectedStaff.id,
@@ -565,7 +566,7 @@ export default function StaffBiometrics() {
 																		>
 																			<div className="staff-photo-item position-relative">
 																				<img
-																					src={`http://127.0.0.1:8000${imgObj.image}`}
+																					src={`http://localhost:8000${imgObj.image}`}
 																					alt={`${selectedStaff.name}'s photo`}
 																					className="img-thumbnail rounded-circle"
 																					width={120}

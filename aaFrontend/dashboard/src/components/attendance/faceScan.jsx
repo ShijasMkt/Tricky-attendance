@@ -3,8 +3,11 @@ import { FaceDetection } from "@mediapipe/face_detection";
 import { Camera } from "@mediapipe/camera_utils";
 import { getValidAccessToken } from "../auth/tokenValidation";
 import { Toast } from "primereact/toast";
+import { useAuth } from "../auth/AuthContext";
+
 
 export default function FaceScan({ onClose }) {
+	const {logout} =useAuth();
 	const toast = useRef(null);
 	const videoRef = useRef(null);
 	const canvasRef = useRef(null);
@@ -103,14 +106,13 @@ export default function FaceScan({ onClose }) {
 		canvas.toBlob(async (blob) => {
 			const formData = new FormData();
 			formData.append("image", blob, "frame.jpg");
-			const token = await getValidAccessToken();
-
+			await getValidAccessToken(logout);
 			try {
 				const res = await fetch(
-					"http://127.0.0.1:8000/api/face_rec_mark_Attendance/",
+					"http://localhost:8000/api/face_rec_mark_Attendance/",
 					{
 						method: "POST",
-						headers: { Authorization: `Bearer ${token}` },
+						credentials:'include',
 						body: formData,
 					}
 				);

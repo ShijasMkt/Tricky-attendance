@@ -1,18 +1,25 @@
 import React, { useEffect,useState,useRef } from 'react'
 import { useLocation } from 'react-router-dom';
 import './navbar.css'
-import { logoutFunc } from '../auth/logout';
 import { Menu } from 'primereact/menu';
+import { useAuth } from '../auth/AuthContext';
         
 
 export default function Navbar() {
+    const{logout}=useAuth();
     const menu = useRef(null);
     const [page,setPage]=useState('');
     const location = useLocation();
+
+    const handleLogout=async()=>{
+        logout();
+    }
     let menuItems = [
         { label: 'Settings', icon: 'pi pi-cog' },
-        { label: 'Logout', icon: 'pi pi-sign-out', command: logoutFunc}
+        { label: 'Logout', icon: 'pi pi-sign-out', command: handleLogout}
     ];
+
+    
     useEffect(()=>{
         switch (location.pathname) {
             case '/':

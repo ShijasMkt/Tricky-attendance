@@ -2,7 +2,6 @@ import os
 import time
 import cv2
 import pickle
-from deepface import DeepFace
 from datetime import date
 from django.utils import timezone
 from django.conf import settings
@@ -18,6 +17,7 @@ ENCODINGS_PICKLE_PATH = os.path.join(settings.MEDIA_ROOT, 'face_encodings.pkl')
 CLASSIFIER_PICKLE_PATH = os.path.join(settings.MEDIA_ROOT, 'face_classifier.pkl')
 
 def extract_face_encodings():
+    from deepface import DeepFace
     encodings = []
     labels = []
 
@@ -69,6 +69,7 @@ def convert_bgr_to_rgb(frame):
 
 
 def get_face_encodings(image):
+    from deepface import DeepFace
     try:
         representations = DeepFace.represent(img_path=image, model_name="Facenet512", enforce_detection=True)
 
