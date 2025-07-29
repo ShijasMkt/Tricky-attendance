@@ -1,8 +1,11 @@
+import 'package:app/api_client.dart';
 import 'package:flutter/material.dart';
 import 'auth_gate.dart';
 
 final GlobalKey<NavigatorState> navigatorKey=GlobalKey<NavigatorState>();
-void main(){
+void main()async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiClient().init();
   runApp(const MyApp());
 }
 

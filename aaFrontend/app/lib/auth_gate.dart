@@ -1,15 +1,19 @@
+import 'package:app/api_client.dart';
 import 'package:app/pages/Home.dart';
 import 'package:app/pages/login.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
   Future<bool> checkLoggedIn() async{
-    final prefs=await SharedPreferences.getInstance();
-    final accessToken=prefs.getString('access_token');
-    return accessToken!=null && accessToken.isNotEmpty;
+    final dio=ApiClient().dio;
+    try{
+      final response=await dio.get("/api/check_auth/");
+      return response.statusCode==200;
+    }catch(e){
+      return false;
+    }
   }
 
   @override

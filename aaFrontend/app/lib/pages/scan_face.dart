@@ -1,11 +1,10 @@
-import 'dart:convert';
-
-import "package:app/validate_token.dart";
+import 'package:http_parser/http_parser.dart';
+import 'package:app/api_client.dart';
 import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:http/http.dart' as http;
 
 class FaceScanScreen extends StatefulWidget {
   final VoidCallback onClose;
@@ -109,35 +108,43 @@ class _FaceScanScreenState extends State<FaceScanScreen> {
     setState(() {
       _isLoading = true;
     });
+    final dio=ApiClient().dio;
     final file = await _cameraController!.takePicture();
     final bytes = await file.readAsBytes();
-    final token = await getValidToken();
 
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://192.168.100.5:8000/api/face_rec_mark_Attendance/'),
-    );
-    request.files.add(
-      http.MultipartFile.fromBytes('image', bytes, filename: 'frame.jpg'),
-    );
-    request.headers.addAll({'Authorization': 'Bearer $token'});
+    final formData=FormData.fromMap({
+      'image':MultipartFile.fromBytes(
+        bytes,
+        filename: 'frame.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      ),
+    });
+    try{
+      final response= await dio.post(
+        "/api/face_rec_mark_Attendance/",
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data'
+        )
+      );
+      if (response.statusCode == 200) {
+      final data = response.data;
 
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      if (data['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${data['message']}: ${data['name']}')),
-        );
+        if (data['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${data['message']}: ${data['name']}')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Server error. Try again.')));
       }
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Server error. Try again.')));
+    }catch (e){
+      print("error sending image: $e");
     }
+    
+    
     setState(() {
       _isLoading = false;
     });
@@ -160,8 +167,9 @@ class _FaceScanScreenState extends State<FaceScanScreen> {
             child: const Center(child: CircularProgressIndicator()),
           ),
         Positioned(
-          bottom: 20,
-          left: 20,
+          bottom: 30,
+          left:50,
+          right:50,
           child: ElevatedButton(
             onPressed: _isLoading ? null : _captureAndSend,
             child: _isLoading

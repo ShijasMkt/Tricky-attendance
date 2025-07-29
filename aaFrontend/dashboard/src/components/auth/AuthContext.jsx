@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
                 });
                 
                 if (refreshRes.ok) {
-                    const res = await fetch("http://localhost:8000/api/check-auth/", {
+                    const res = await fetch("http://localhost:8000/api/check_auth/", {
                         credentials: "include",
                     });
                     

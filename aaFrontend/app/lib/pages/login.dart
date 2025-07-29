@@ -1,8 +1,7 @@
-import 'dart:convert';
+
+import 'package:app/api_client.dart';
 import 'package:app/pages/home.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -18,30 +17,21 @@ class _LoginState extends State<Login> {
 
   Future <void> _checkLogin() async{
     if(_formKey.currentState!.validate()){
+      final dio= ApiClient().dio;
       String uName=_uNameController.text.trim();
       String password=_passwordController.text;
 
-      final formData={
-        'uName':uName,
-        'password':password,
-      };
-
-      final url = Uri.parse("http://192.168.100.5:8000/api/check_login/");
+      
       try{
-        final response=await http.post(
-          url,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode(formData)
+        final response=await dio.post(
+         "/api/check_login/",
+         data: {
+          'uName':uName,
+          'password':password,
+         }
         );
 
         if(response.statusCode==200){
-          final data=jsonDecode(response.body);
-          final prefs=await SharedPreferences.getInstance();
-          await prefs.setString('access_token', data['access']);
-          await prefs.setString('refresh_token', data['refresh']);
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Login successful!")),
           );
@@ -51,9 +41,8 @@ class _LoginState extends State<Login> {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const Home()));
         }
         else{
-          final error = jsonDecode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Login failed: ${error['detail']}")),
+            SnackBar(content: Text("Login failed")),
           );
         }
       }catch(e){

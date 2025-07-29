@@ -10,7 +10,7 @@ urlpatterns = [
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/check_login/',checkLogin),
     path('api/logout/',logout_func),
-    path('api/check-auth/', check_auth),
+    path('api/check_auth/', check_auth),
     path('api/token/refresh/', CookieTokenRefreshView.as_view(), name='token_refresh'),
     path('api/create_staff/',createStaff),
     path('api/fetch_staff/',fetchStaff),

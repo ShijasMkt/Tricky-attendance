@@ -1,12 +1,10 @@
-import 'dart:convert';
-
+import 'package:app/api_client.dart';
 import 'package:app/logout_func.dart';
 import 'package:app/pages/scan_face.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-import "package:app/validate_token.dart";
-import 'package:http/http.dart' as http;
+
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -37,20 +35,17 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _fetchAttendence() async {
-    final token = await getValidToken();
+    
+    final dio=ApiClient().dio;
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    final res = await http.post(
-      Uri.parse('http://192.168.100.5:8000/api/fetch_Attendance/'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'date': today}),
+    final res = await dio.post(
+      "/api/fetch_Attendance/",
+      data: {'date': today}
     );
 
     if (res.statusCode == 200) {
-      final List data = jsonDecode(res.body);
+      final List data = res.data;
 
       setState(() {
         present = data

@@ -1,14 +1,20 @@
+import 'package:app/api_client.dart';
 import 'package:app/main.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/login.dart';
 
 Future<void> logoutFunc() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.clear();
+  final dio=ApiClient().dio;
+  try{
+    await dio.post("/api/logout/");
 
-  navigatorKey.currentState?.pushAndRemoveUntil(
+    navigatorKey.currentState?.pushAndRemoveUntil(
     MaterialPageRoute(builder: (_) => const Login()),
     (route) => false,
   );
+  }catch(e){
+    print("Logout failed : $e");
+  }
+
+  
 }
