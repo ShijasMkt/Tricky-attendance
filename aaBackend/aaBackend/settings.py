@@ -84,9 +84,9 @@ WSGI_APPLICATION = 'aaBackend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'trickydot',
-        'USER': 'postgres',
-        'PASSWORD': 'shijas',
+        'NAME': 'tricky_attendance',
+        'USER': 'shijas',
+        'PASSWORD': 'Shijas@123',
         'HOST':'localhost',
         'PORT':'5432',
     }
