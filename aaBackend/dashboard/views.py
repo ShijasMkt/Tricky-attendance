@@ -10,8 +10,6 @@ from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.timezone import now
 from .tools.face_rec import extract_face_encodings,save_encodings_and_classifier,recognize_and_mark
 from rest_framework_simplejwt.views import TokenRefreshView
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import TokenError
 
 
@@ -19,28 +17,28 @@ from rest_framework_simplejwt.exceptions import TokenError
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get('refreshToken')
-        
+
         if not refresh_token:
             return Response(
-                {'error': 'No refresh token cookie found'}, 
+                {'error': 'No refresh token cookie found'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-       
+
         serializer = self.get_serializer(data={"refresh": refresh_token})
-        
+
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             return Response(
-                {'error': 'Refresh token expired or invalid'}, 
+                {'error': 'Refresh token expired or invalid'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
         except Exception as e:
             return Response(
-                {'error': 'Token validation failed'}, 
+                {'error': 'Token validation failed'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-       
+
         access = serializer.validated_data.get('access')
         res = Response({'detail': 'Token refreshed successfully'})
         res.set_cookie(
@@ -52,7 +50,7 @@ class CookieTokenRefreshView(TokenRefreshView):
             max_age=60*5,  # 5 minutes
             path='/',
         )
-        
+
         return res
 
 @api_view(['GET'])
@@ -68,18 +66,18 @@ def checkLogin(request):
         data = request.data
         user_name = data.get('uName')
         password = data.get('password')
-        
+
         user=authenticate(request,username=user_name,password=password)
 
         if user:
             refresh = RefreshToken.for_user(user)
             access = refresh.access_token
-            
+
             response = Response({
                 'detail': 'Login successful',
                 'user': user.name,
             })
-            
+
             # Set refresh token cookie (longer expiry)
             response.set_cookie(
                 key='refreshToken',
@@ -88,9 +86,9 @@ def checkLogin(request):
                 secure=False,  # Set to True in production
                 samesite='Lax',
                 max_age=60*60*24*7,
-                path='/',  
+                path='/',
             )
-            
+
             # Set access token cookie (shorter expiry)
             response.set_cookie(
                 key='accessToken',
@@ -99,13 +97,13 @@ def checkLogin(request):
                 secure=False,  # Set to True in production
                 samesite='Lax',
                 max_age=60*5,
-                path='/',  
+                path='/',
             )
-            
+
             return response
         else:
             return Response(
-                {'error': 'Invalid credentials'}, 
+                {'error': 'Invalid credentials'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
@@ -113,7 +111,7 @@ def checkLogin(request):
 @permission_classes([IsAuthenticated])
 def logout_func(request):
     refresh_token = request.COOKIES.get('refreshToken')
-    
+
     if refresh_token:
         try:
             # Blacklist the refresh token to invalidate it
@@ -125,26 +123,26 @@ def logout_func(request):
     response = Response({
         'detail': 'Logout successful'
     }, status=status.HTTP_200_OK)
-    
+
     response.delete_cookie(
         key='refreshToken',
         path='/',
         samesite='Lax'
     )
-    
+
     response.delete_cookie(
-        key='accessToken', 
+        key='accessToken',
         path='/',
         samesite='Lax'
     )
-    
+
     return response
 
-    
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def createStaff(request):
-    
+
     if request.method=='POST':
         formData=request.data.get('formData')
         new_staff=Staffs(
@@ -161,34 +159,34 @@ def createStaff(request):
 
         new_staff.save()
         return Response(status=status.HTTP_200_OK)
-    
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetchStaff(request):
     if request.method=="GET":
-        staff_data=Staffs.objects.filter(deleted=False)    
+        staff_data=Staffs.objects.filter(deleted=False)
         serialized_data=StaffDataSerializer(staff_data,many=True)
         return Response(status=status.HTTP_200_OK,data=serialized_data.data)
-    
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def deleteStaff(request):
     if request.method=='POST':
-        staffID=request.data.get('staffID') 
+        staffID=request.data.get('staffID')
         staff=Staffs.objects.get(staff_id=staffID)
         if staff:
             staff.deleted=True
             staff.save()
             return Response(status=status.HTTP_200_OK)
-        
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def editStaff(request):
     if request.method=='POST':
         formData=request.data.get('formData')
         staff_id=formData['staff_id']
-        
+
         new_name=formData['name']
         new_phone=formData['phone']
         new_email=formData['email']
@@ -215,13 +213,13 @@ def editStaff(request):
             selected_staff.save()
 
             return(Response(status=status.HTTP_200_OK))
-        
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def fetchAttendance(request):
     if request.method == 'POST':
-        selected_date = request.data.get('date')  
-        
+        selected_date = request.data.get('date')
+
         selected_attendance = Attendance.objects.select_related('staff').filter(date=selected_date)
 
         if not selected_attendance.exists():
@@ -229,16 +227,16 @@ def fetchAttendance(request):
 
         all_attendance = []
         for record in selected_attendance:
-            
+
             staff_serializer = StaffDataSerializer(record.staff)
 
-            
+
             attendance_data = {
                 "staff_id": record.staff.id,
                 "staff_name": record.staff.name,
                 "date": record.date,
                 "status": record.status,
-                "staff_data": staff_serializer.data,  
+                "staff_data": staff_serializer.data,
                 "time":record.timestamp,
                 "remarks":record.remarks
             }
@@ -246,10 +244,10 @@ def fetchAttendance(request):
 
         return Response(all_attendance, status=status.HTTP_200_OK)
 
-            
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def markAttendance(request): 
+def markAttendance(request):
     if request.method=='POST':
         formData=request.data.get('data')
         staff_id=formData['staff_id']
@@ -263,7 +261,7 @@ def markAttendance(request):
             selected_attendance.status=attendance_status
             selected_attendance.save()
             return(Response(status=status.HTTP_200_OK))
-        
+
         else:
             new_attendance=Attendance(
                 staff=selected_staff,
@@ -275,16 +273,16 @@ def markAttendance(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def markLeave(request): 
+def markLeave(request):
     if request.method=='POST':
         formData=request.data.get('data')
         staff_id=formData['staff_id']
         date=formData['date']
-        attendance_status=formData['status'] 
-        reason=formData['reason']     
+        attendance_status=formData['status']
+        reason=formData['reason']
         attendance_status=formData['status']
         selected_staff=Staffs.objects.get(id=staff_id)
-                       
+
         selected_attendance=Attendance.objects.filter(staff_id=staff_id,date=date).first()
 
         if selected_attendance:
@@ -292,7 +290,7 @@ def markLeave(request):
             selected_attendance.remarks=reason
             selected_attendance.save()
             return(Response(status=status.HTTP_200_OK))
-        
+
         else:
             new_attendance=Attendance(
                 staff=selected_staff,
@@ -302,11 +300,11 @@ def markLeave(request):
             )
             new_attendance.save()
             return(Response(status=status.HTTP_200_OK))
-        
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def updateAttendance(request):    
-     
+def updateAttendance(request):
+
     date_str = request.data.get('date')
     attendance_data = request.data.get('data')
 
@@ -321,14 +319,14 @@ def updateAttendance(request):
 
         if not all([staff_id, status_val]):
             continue  # Skip incomplete entries
-    
+
         try:
             staff = Staffs.objects.get(id=staff_id)
         except Staffs.DoesNotExist:
             continue  # Skip if staff not found
 
-        
-        
+
+
         # Parse date and datetime
         date = parse_date(date_str)
         timestamp = parse_datetime(timestamp_str) if timestamp_str else now()
@@ -350,7 +348,7 @@ def updateAttendance(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def uploadStaffImg(request): 
+def uploadStaffImg(request):
     if request.method=="POST":
         data = request.data
         staff_id = data.get('staffID')
@@ -360,23 +358,23 @@ def uploadStaffImg(request):
             if img:
                 StaffImages.objects.create(staff=staff_selected, image=img)
                 encodings, labels = extract_face_encodings()  # Get encodings and labels
-                save_encodings_and_classifier(encodings, labels) 
+                save_encodings_and_classifier(encodings, labels)
                 return Response(status=status.HTTP_200_OK)
             else:
                 return Response({"error": "Image not provided"}, status=status.HTTP_400_BAD_REQUEST)
-              
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def deleteStaffImg(request): 
+def deleteStaffImg(request):
     if request.method=='POST':
-        image_id=request.data.get('imageId')      
+        image_id=request.data.get('imageId')
         staff_id=request.data.get('staffId')
 
         selected_img=StaffImages.objects.filter(id=image_id,staff_id=staff_id).first()
 
         if selected_img:
-            file_path = selected_img.image.path  
+            file_path = selected_img.image.path
 
             selected_img.delete()
 
@@ -386,14 +384,14 @@ def deleteStaffImg(request):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response({"error": "Image Not found"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def faceRecognitionAttendance(request):
     image_file=request.FILES.get("image")
     if not image_file:
         return Response({"success": False, "message": "No image uploaded"}, status=400)
-    
+
     import numpy as np
     import cv2
     file_bytes = np.asarray(bytearray(image_file.read()), dtype=np.uint8)
@@ -402,9 +400,9 @@ def faceRecognitionAttendance(request):
     # Use your existing pipeline with `frame`
     result = recognize_and_mark(frame)
 
-    return Response(result)    
+    return Response(result)
 
-        
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetchTotalEmployees(request):

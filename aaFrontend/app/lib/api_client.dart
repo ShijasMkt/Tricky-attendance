@@ -25,7 +25,7 @@ class ApiClient{
       storage: FileStorage("${appDocDir.path}/.cookies/"),
     ); 
 
-    dio.options.baseUrl = "http://192.168.100.5:8000";
+    dio.options.baseUrl = "http://192.168.100.70:8000";
     dio.options.headers['content-Type'] = 'application/json';
     dio.interceptors.add(CookieManager(_cookieJar));
     dio.interceptors.add(_tokenRefreshInterceptor());

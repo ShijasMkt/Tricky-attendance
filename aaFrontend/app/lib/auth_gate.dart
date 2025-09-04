@@ -1,5 +1,5 @@
 import 'package:app/api_client.dart';
-import 'package:app/pages/Home.dart';
+import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
 import 'package:flutter/material.dart';
 
